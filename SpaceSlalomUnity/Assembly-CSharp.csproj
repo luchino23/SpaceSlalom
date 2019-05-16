@@ -56,8 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Asteroids Pack\Assets\Scripts\RandomRotator.cs" />
-    <Compile Include="Assets\LoadSceneOnClick.cs" />
-    <Compile Include="Assets\QuitOnClick.cs" />
+    <Compile Include="Assets\Client.cs" />
+    <Compile Include="Assets\Packet.cs" />
     <Compile Include="Assets\Scripts\ActiveStateToggler.cs" />
     <Compile Include="Assets\Scripts\ApplicationManager.cs" />
     <Compile Include="Assets\Scripts\BgScroller.cs" />
@@ -65,14 +65,17 @@
     <Compile Include="Assets\Scripts\DragMe.cs" />
     <Compile Include="Assets\Scripts\DragPanel.cs" />
     <Compile Include="Assets\Scripts\DropMe.cs" />
+    <Compile Include="Assets\Scripts\LoadSceneOnClick.cs" />
     <Compile Include="Assets\Scripts\PanelManager.cs" />
+    <Compile Include="Assets\Scripts\PlayerMovement.cs" />
+    <Compile Include="Assets\Scripts\QuitOnClick.cs" />
     <Compile Include="Assets\Scripts\ResizePanel.cs" />
     <Compile Include="Assets\Scripts\ScrollDetailTexture.cs" />
+    <Compile Include="Assets\Scripts\SelectOnInput.cs" />
     <Compile Include="Assets\Scripts\ShowSliderValue.cs" />
     <Compile Include="Assets\Scripts\StartGame.cs" />
     <Compile Include="Assets\Scripts\TiltWindow.cs" />
-    <Compile Include="Assets\SelectOnInput.cs" />
-    <Compile Include="Assets\VolumeValueChange.cs" />
+    <Compile Include="Assets\Scripts\VolumeValueChange.cs" />
     <None Include="Assets\Unity UI Menu\Fonts\Jupiter\LICENSE.txt" />
     <None Include="Assets\Unity UI Menu\Textures and Sprites\SF UI\Background\LICENSE.txt" />
     <None Include="Assets\Unity UI Menu\Materials\UI-Default-No-Alpha.shader" />
