@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/SpaceSlalom/SampleScene.unity
+- path: Assets/SpaceSlalom/SpaceSlalomGame.unity
   isLoaded: 1
   isActive: 1
