@@ -7,7 +7,7 @@ namespace GameServerExample2B
         public static void Main(string[] args)
         {
             GameTransportIPv4 transport = new GameTransportIPv4();
-            transport.Bind("192.168.1.139", 9999);
+            transport.Bind("192.168.3.115", 9999);
 
             GameServer server = new GameServer(transport,null);
 
