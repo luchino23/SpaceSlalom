@@ -1,7 +1,13 @@
+
+# Created by https://www.gitignore.io/api/unity
+# Edit at https://www.gitignore.io/?templates=unity
+
 ### Unity ###
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
+[Bb]uild/
+[Bb]uilds/
 [Ll]ogs/
 
 # Never ignore Asset meta data
@@ -51,3 +57,6 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
+
+
+# End of https://www.gitignore.io/api/unity
