@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Unity UI Menu/Scenes/Controls.unity
     guid: e31151469f9db41bb99384b804f43c3d
-  - enabled: 1
+  - enabled: 0
     path: Assets/SpaceSlalom/SpaceSlalomGame.unity
     guid: cd01cac4414b73f4ba3dcf5b2ae36ca3
   m_configObjects: {}

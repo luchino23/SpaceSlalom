@@ -48,9 +48,17 @@ public class Packet
             {
                 writer.Write((char)element);
             }
+            else if (element is string)
+            {
+                writer.Write((string)element);
+            }
             else if (element is uint)
             {
                 writer.Write((uint)element);
+            }
+            else if (element is bool)
+            {
+                writer.Write((bool)element);
             }
             else
             {
