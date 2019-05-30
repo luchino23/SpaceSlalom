@@ -2,14 +2,14 @@
 namespace GameServerExample2B
 {
     //public abstract class GameObject
-    public class GameObject
+    public abstract class GameObject
     {
         public float X;
         public float Y;
         public float Z;
 
-        private GameClient owner;
-        private Room room;
+        protected GameClient owner;
+        protected Room room;
         protected GameServer server;
 
         public bool IsOwnedBy(GameClient client)
@@ -29,7 +29,7 @@ namespace GameServerExample2B
             owner = client;
         }
 
-        private uint internalObjectType;
+        protected uint internalObjectType;
         public uint ObjectType
         {
             get
@@ -39,8 +39,8 @@ namespace GameServerExample2B
             }
         }
 
-        private static uint gameObjectCounter;
-        private uint internalId;
+        protected static uint gameObjectCounter;
+        protected uint internalId;
         public uint Id
         {
             get

@@ -81,6 +81,10 @@ namespace GameServerExample2B
                 {
                     writer.Write((char)element);
                 }
+                else if (element is string)
+                {
+                    writer.Write((string)element);
+                }
                 else if (element is uint)
                 {
                     writer.Write((uint)element);

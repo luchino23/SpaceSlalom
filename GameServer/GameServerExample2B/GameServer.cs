@@ -17,7 +17,7 @@ namespace GameServerExample2B
         private IGameTransport transport;
         private IMonotonicClock clock;
 
-        private uint roomId;
+        private uint roomIdInServer;
         public List<Room> Rooms;
 
         public uint NumClients
@@ -42,8 +42,8 @@ namespace GameServerExample2B
                         return Rooms[i];
                 }
                 //create an empty room
-                Room room = new Room(this, roomId);
-                roomId++;
+                Room room = new Room(this, roomIdInServer);
+                roomIdInServer++;
                 return room;
             }
             else
@@ -73,19 +73,20 @@ namespace GameServerExample2B
 
             GameClient newClient = new GameClient(this,sender);
             
+            
             newClient.JoinInTheRoom(GetEmptyRoom());
+            clientsTable[sender] = newClient;
 
             Room room = newClient.Room;
-            room.JoinRoom(newClient);
+            
 
 
-            //Avatar avatar = Spawn<Avatar>();
-            GameObject avatar = new GameObject();
+            SpaceShip avatar = Spawn<SpaceShip>(room.RoomId);
+            
             avatar.SetOwner(newClient);
             Packet welcome = new Packet(this, 1, avatar.ObjectType, avatar.Id, avatar.X, avatar.Y, avatar.Z);
             welcome.NeedAck = true;
             newClient.Enqueue(welcome);
-            clientsTable[sender] = newClient;
 
             // spawn all server's objects in the new client
             foreach (GameObject gameObject in room.gameObjectsTable.Values)
@@ -105,7 +106,7 @@ namespace GameServerExample2B
 
             Console.WriteLine("client {0} joined with avatar {1}", newClient, avatar.Id);
 
-            Packet JoinRoomPacket = new Packet(this, 5, roomId);
+            Packet JoinRoomPacket = new Packet(this, 5, roomIdInServer);
             JoinRoomPacket.NeedAck = true;
             newClient.Enqueue(JoinRoomPacket);
             newClient.Process();
@@ -158,8 +159,75 @@ namespace GameServerExample2B
             commandsTable[0] = Join;
             commandsTable[3] = Update;
             //commandsTable[5] = JoinRoom;
+            //commandsTable[6] = SpawnAsteroids;
+            commandsTable[7] = UpdateAsteroids;
+            commandsTable[8] = SetReady;
+            //commandsTable[9] = DestroyAsteroid;
+            //commandsTable[10] = SpaceShipCollision;
+            
             commandsTable[253] = StatusServer;
             commandsTable[255] = Ack;
+        }
+               
+
+        public void StartGame(uint roomId)
+        {
+            Room room = GetRoomFromId(roomId);
+
+
+        }
+
+        private void SetReady(byte[] data, EndPoint sender)
+        {
+            if (!clientsTable.ContainsKey(sender))
+            {
+                return;
+            }
+
+            uint roomId = BitConverter.ToUInt32(data, 1);
+            Room room = GetRoomFromId(roomId);
+
+            GameClient client = new GameClient(this, sender);
+
+            bool ready = BitConverter.ToBoolean(data, 5);
+
+            if (room.ContainsClient(client))
+            {
+                room.SetPlayerReady(client, ready);
+            }
+
+           
+
+            Packet ackStart = new Packet(this, 255);
+               
+            //Packet 
+            //(client, roomid)
+            //if(client in this.roomId)
+            //if(p1.isready and p2.isready)
+            //start
+        }
+
+        private void UpdateAsteroids(byte[] data, EndPoint sender)
+        {
+            if (!clientsTable.ContainsKey(sender))
+            {
+                return;
+            }
+            GameClient client = clientsTable[sender];
+
+           // Packet packet = (7, roomId, pos.y);
+        }
+
+        public void SpawnAsteroids(Room room)
+        {           
+
+            Asteroids asteroid = Spawn<Asteroids>(roomIdInServer);
+            
+            Packet asteroidSpawn = new Packet(this, 6, asteroid.ObjectType, asteroid.Id, asteroid.X, asteroid.Y);
+            asteroidSpawn.NeedAck = true;
+            SendToAllInARoom(asteroidSpawn, room);
+
+
         }
 
         public void Run()
@@ -193,7 +261,7 @@ namespace GameServerExample2B
 
         public void SingleStep()
         {
-          //  currentNow = clock.GetNow();
+            currentNow = clock.GetNow();
             EndPoint sender = transport.CreateEndPoint();
             byte[] data = transport.Recv(256, ref sender);
             if (data != null)
@@ -212,8 +280,7 @@ namespace GameServerExample2B
 
             foreach (Room room in Rooms)
             {
-                foreach (GameObject gameObject in room.gameObjectsTable.Values)
-                gameObject.Tick();
+                room.UpdateRoom();
             }
         }
 
@@ -250,8 +317,14 @@ namespace GameServerExample2B
         {
             if (except != room.Player1 && room.Player1 != null)
                 room.Player1.Enqueue(packet);
-            else if (except != room.Player2 && room.Player1 != null)
-                room.Player2.Enqueue(packet);
+            else if (room.CountClient() > 1)
+            {
+               if( except != room.Player2 && room.Player2 != null)
+                {
+                    room.Player2.Enqueue(packet);
+                }
+            }
+          
         }
 
         public void SendToAllInARoom(Packet packet, Room room) //sendToAllClients
@@ -260,17 +333,22 @@ namespace GameServerExample2B
             room.Player2.Enqueue(packet);
         }
 
-       //public bool RegisterGameObject(GameObject gameObject,uint roomID,Room room)
-       //{
-       //     room.RegisterGameObject(gameObject, roomID);
-       //}
+        public bool RegisterGameObject(GameObject gameObject, uint roomID)
+        {
+            Room room = GetRoomFromId(roomIdInServer);
+            if(room != null)
+            {
+                return room.RegisterGameObject(gameObject, roomIdInServer);
+            }
+            return false;
+        }
 
-        //public T Spawn<T>() where T : GameObject
-        //{
-        //    object[] ctorParams = { this };
-        //    T newGameObject = Activator.CreateInstance(typeof(T), ctorParams) as T;
-        //    //RegisterGameObject(newGameObject);
-        //    return newGameObject;
-        //}
+        public T Spawn<T>(uint roomId) where T : GameObject
+        {
+            object[] ctorParams = { this };
+            T newGameObject = Activator.CreateInstance(typeof(T), ctorParams) as T;
+            RegisterGameObject(newGameObject, roomId);
+            return newGameObject;
+        }
     }
 }

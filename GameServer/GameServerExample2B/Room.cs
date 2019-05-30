@@ -8,7 +8,7 @@ namespace GameServerExample2B
 {
     public class Room
     {
-        private GameClient[] clients;
+        private List <GameClient> clients;
 
         private GameServer server;
 
@@ -21,11 +21,24 @@ namespace GameServerExample2B
             get { return clients[1]; }
         }
 
+        private bool gameStarted;
+
+        public bool GameStarted
+        {
+            get
+            {
+                return gameStarted;
+            }
+        }
+
         private uint id;
         public uint RoomId
         {
             get { return id; }
         }
+
+        private float asteroidTimeSpawn;
+        
 
         public Dictionary<uint, GameObject> gameObjectsTable;
         
@@ -45,10 +58,39 @@ namespace GameServerExample2B
             gameObjectsTable[gameObject.Id] = gameObject;
         }
 
-        public void RegisterGameObject(GameObject gameObject,uint id)
+        public bool RegisterGameObject(GameObject gameObject,uint id)
         {
-            gameObjectsTable.Add(id, gameObject);
+            if (!gameObjectsTable.ContainsKey(id))
+            {
+                gameObjectsTable.Add(id, gameObject);
+
+                Console.WriteLine("Spawned GameObject Type : {0}, Id : {1})", gameObject.GetType(), gameObject.Id);
+                return true;
+                
+            }
+            return false;
         }
+
+        public void UpdateRoom()
+        {
+
+            if (GameStarted)
+            {
+                foreach (GameObject gameObj in gameObjectsTable.Values)
+                {
+                    gameObj.Tick();
+                }
+
+                if (server.Now >= asteroidTimeSpawn)
+                {
+                    server.SpawnAsteroids(this);
+                    SetSpawnTimer();
+                }
+            }
+        
+            
+        }
+       
 
         //public GameObject GetIdOfGameObject(uint id)
         //{
@@ -57,7 +99,32 @@ namespace GameServerExample2B
         //        gameObjectsTable.Add(id);
         //    }
         //}
-      
+       public bool ContainsClient(GameClient client)
+       {
+            return clients.Contains(client);
+       }
+
+       public int CountClient()
+       {
+            return clients.Count();
+       } 
+
+        public void SetPlayerReady(GameClient client, bool isReady)
+        {
+            if(Player1 == client)
+            {
+                Player1.SetReady(isReady);
+            }
+            else if( Player2 == client)
+            {
+                Player2.SetReady(isReady);
+            }
+
+            if(Player1.IsReady && Player2.IsReady)
+            {
+                server.StartGame(RoomId);
+            }
+        }
 
         public bool IsOccupy
         {
@@ -69,21 +136,37 @@ namespace GameServerExample2B
 
         public Room(GameServer server, uint roomId)
         {
-            clients = new GameClient[2];
+            clients = new List<GameClient>(2);
             gameObjectsTable = new Dictionary<uint, GameObject>();
             this.server = server;
             this.id = roomId;
 
         }
 
+        private void SetSpawnTimer()
+        {
+            Random random = new Random();
+            float offset = random.Next(3, 10);
+            asteroidTimeSpawn += offset;
+
+        }
+
         public void JoinRoom(GameClient client)
         {
-            if (Player1 == null)
-                clients[0] = client;
-            if (Player2 == null)
-                clients[1] = client;
+         
+            if(!this.ContainsClient(client))
+            {
+                if (clients.Count < 2)
+                {
+                    clients.Add(client);
+                    client.JoinInTheRoom(this);
+                }
+            }
+            
+           
+          
 
-            client.JoinInTheRoom(this);
+          
         }
 
         

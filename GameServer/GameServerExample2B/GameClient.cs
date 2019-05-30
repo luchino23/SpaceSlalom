@@ -24,9 +24,26 @@ namespace GameServerExample2B
             }
         }
 
+        private bool isReady;
+
+        public bool IsReady
+        {
+            get
+            {
+                return isReady;
+            }
+        }
+
+        public void SetReady(bool ready)
+        {
+            isReady = ready;
+        }
+
         public void JoinInTheRoom(Room room)
         {
+
             this.room = room;
+            room.JoinRoom(this);
         }
 
         private GameServer server;
