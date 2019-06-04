@@ -8,7 +8,7 @@ namespace GameServerExample2B
         {
             GameTransportIPv4 transport = new GameTransportIPv4();
             
-            transport.Bind("192.168.1.124", 9999);
+            transport.Bind("192.168.1.191", 9999);
 
             GameClock clock = new GameClock();
 

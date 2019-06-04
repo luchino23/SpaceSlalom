@@ -8,7 +8,7 @@ namespace GameServerExample2B
 {
     public class Room
     {
-        private List <GameClient> clients;
+        private GameClient[] clients;
 
         private GameServer server;
 
@@ -130,6 +130,7 @@ namespace GameServerExample2B
             {
                 gameStarted = true;
                 server.StartGame(RoomId);
+                
             }
        }
 
@@ -137,13 +138,13 @@ namespace GameServerExample2B
         {
             get
             {
-                return Player1 == null && Player2 == null;
+                return Player1 != null && Player2 != null;
             }
         }
 
         public Room(GameServer server, uint roomId)
         {
-            clients = new List<GameClient>(2);
+            clients = new GameClient[2];
             gameObjectsTable = new Dictionary<uint, GameObject>();
             this.server = server;
             this.id = roomId;
@@ -163,17 +164,18 @@ namespace GameServerExample2B
          
             if(!this.ContainsClient(client))
             {
-                if (clients.Count < 2)
+                for (int i = 0; i < clients.Length; i++)
                 {
-                    clients.Add(client);
-                    client.JoinInTheRoom(this);
+                    if(clients[i] == null)
+                    {
+                        clients[i] = client;
+                        return;
+                    }
+                    
                 }
-            }
-            
-           
+            }        
           
 
-          
         }
 
         

@@ -56,7 +56,6 @@ namespace GameServerExample2B
 
         public void JoinInTheRoom(Room room)
         {
-
             this.room = room;
             room.JoinRoom(this);
         }

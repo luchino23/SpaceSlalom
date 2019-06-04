@@ -126,6 +126,7 @@ public class GameClient : MonoBehaviour
 
         
         isReadyPlayer1 = false;
+        isReadyPlayer2 = false;
 
         backGround.SetActive(false);
         cam.gameObject.SetActive(false);
@@ -160,25 +161,29 @@ public class GameClient : MonoBehaviour
 
     public void SetOneReady(byte[] data, EndPoint sender)
     {
-        //roomId = BitConverter.ToUInt32(data, 1);
-        //myNetId = BitConverter.ToUInt32(data, 5);
-                
+        roomId = BitConverter.ToUInt32(data, 1);
+        myNetId = BitConverter.ToUInt32(data, 5);
 
-        //if (isReadyPlayer1 ^ isReadyPlayer2)
-        //{
-        //    loadingObj.SetActive(true);
-        //    startingMenu.SetActive(false);
-        //}
-        //else if (isReadyPlayer1 && IsReadyPlayer2)
-        //{
-        //    backGround.SetActive(true);
-        //    cam.gameObject.SetActive(true);
-        //    startingMenu.SetActive(false);
-        //    sceneElements.SetActive(false);
+        if (myNetId == 1)
+            isReadyPlayer1 = true;
+        else if (myNetId == 2)
+            isReadyPlayer2 = true;
 
-        //    Packet start = new Packet(8, roomId, myNetId);
-           
-        //}
+        if (isReadyPlayer1 ^ isReadyPlayer2)
+        {
+            loadingObj.SetActive(true);
+            startingMenu.SetActive(false);
+        }
+        else if (isReadyPlayer1 && IsReadyPlayer2)
+        {
+            backGround.SetActive(true);
+            cam.gameObject.SetActive(true);
+            startingMenu.SetActive(false);
+            sceneElements.SetActive(false);
+
+            Packet start = new Packet(8, roomId, myNetId);
+
+        }
     }
 
     private void SpawnAsteroids(byte[] data, EndPoint sender)
@@ -243,23 +248,33 @@ public class GameClient : MonoBehaviour
         Debug.Log("Welcome Arrived");
 
 
-        if (myNetId == 1)
-            isReadyPlayer1 = true;
-        else if (myNetId == 2)
-            isReadyPlayer2 = true;
+        //if (myNetId == 1)
+        //    isReadyPlayer1 = true;
+        //else if (myNetId == 2)
+        //    isReadyPlayer2 = true;
 
-        if (isReadyPlayer1 ^ isReadyPlayer2)
-        {
-            loadingObj.SetActive(true);
-            startingMenu.SetActive(false);
-        }
-        else if (isReadyPlayer1 && IsReadyPlayer2)
-        {
-            backGround.SetActive(true);
-            cam.gameObject.SetActive(true);
-            startingMenu.SetActive(false);
-            sceneElements.SetActive(false);
-        }
+        //if (isReadyPlayer1 ^ isReadyPlayer2)
+        //{
+        //    loadingObj.SetActive(true);
+        //    startingMenu.SetActive(false);
+        //}
+        //else if (isReadyPlayer1 && IsReadyPlayer2)
+        //{
+        //    backGround.SetActive(true);
+        //    cam.gameObject.SetActive(true);
+        //    startingMenu.SetActive(false);
+        //    sceneElements.SetActive(false);
+        //}
+
+        //if(isReadyPlayer1 && isReadyPlayer2)
+        //{
+        //    loadingObj.SetActive(true);
+        //    startingMenu.SetActive(false);
+        //    backGround.SetActive(true);
+        //    cam.gameObject.SetActive(true);
+        //    startingMenu.SetActive(false);
+        //    sceneElements.SetActive(false);
+        //}
 
 
     }
