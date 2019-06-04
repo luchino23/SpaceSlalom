@@ -14,6 +14,9 @@ namespace GameServerExample2B
 
         private Dictionary<EndPoint, GameClient> clientsTable;
 
+        
+        
+
         private IGameTransport transport;
         private IMonotonicClock clock;
 
@@ -26,6 +29,7 @@ namespace GameServerExample2B
             {
                 return (uint)clientsTable.Count;
             }
+           
         }
 
        
@@ -43,7 +47,10 @@ namespace GameServerExample2B
                 }
                 //create an empty room
                 Room room = new Room(this, roomIdInServer);
-                roomIdInServer++;
+                roomIdInServer++;              
+
+                Console.WriteLine("Create room with id {0}", roomIdInServer);
+
                 return room;
             }
             else
@@ -76,17 +83,19 @@ namespace GameServerExample2B
             
             newClient.JoinInTheRoom(GetEmptyRoom());
             clientsTable[sender] = newClient;
+            newClient.Id = (uint)clientsTable.Count;
 
-            Room room = newClient.Room;
-            
+            Room room = newClient.Room;            
 
 
             SpaceShip avatar = Spawn<SpaceShip>(room.RoomId);
             
             avatar.SetOwner(newClient);
-            Packet welcome = new Packet(this, 1, avatar.ObjectType, avatar.Id, avatar.X, avatar.Y, avatar.Z);
+            Packet welcome = new Packet(this, 1, room.RoomId, newClient.Id);
             welcome.NeedAck = true;
             newClient.Enqueue(welcome);
+            Console.WriteLine("Welcome");
+
 
             // spawn all server's objects in the new client
             foreach (GameObject gameObject in room.gameObjectsTable.Values)
@@ -96,6 +105,8 @@ namespace GameServerExample2B
                 Packet spawn = new Packet(this, 2, gameObject.ObjectType, gameObject.Id, gameObject.X, gameObject.Y, gameObject.Z);
                 spawn.NeedAck = true;
                 SendToOthersRoom(spawn, room, newClient);
+
+                Console.WriteLine("Spawn");
             }
 
 
@@ -110,7 +121,10 @@ namespace GameServerExample2B
             JoinRoomPacket.NeedAck = true;
             newClient.Enqueue(JoinRoomPacket);
             newClient.Process();
+
+            
         }
+           
 
         private void Ack(byte[] data, EndPoint sender)
         {
@@ -157,6 +171,8 @@ namespace GameServerExample2B
             clientsTable = new Dictionary<EndPoint, GameClient>();
             commandsTable = new Dictionary<byte, GameCommand>();
             commandsTable[0] = Join;
+            //welcome [1]
+            //spawn[2]
             commandsTable[3] = Update;
             //commandsTable[5] = JoinRoom;
             //commandsTable[6] = SpawnAsteroids;
@@ -168,12 +184,16 @@ namespace GameServerExample2B
             commandsTable[253] = StatusServer;
             commandsTable[255] = Ack;
         }
-               
+
 
         public void StartGame(uint roomId)
         {
             Room room = GetRoomFromId(roomId);
 
+            if(clock.GetNow() == 7)
+            {
+                
+            }
 
         }
 
@@ -196,10 +216,9 @@ namespace GameServerExample2B
                 room.SetPlayerReady(client, ready);
             }
 
+            StartGame(roomId);
            
 
-            Packet ackStart = new Packet(this, 255);
-               
             //Packet 
             //(client, roomid)
             //if(client in this.roomId)
@@ -224,7 +243,6 @@ namespace GameServerExample2B
             Asteroids asteroid = Spawn<Asteroids>(roomIdInServer);
             
             Packet asteroidSpawn = new Packet(this, 6, asteroid.ObjectType, asteroid.Id, asteroid.X, asteroid.Y);
-            asteroidSpawn.NeedAck = true;
             SendToAllInARoom(asteroidSpawn, room);
 
 
@@ -320,9 +338,9 @@ namespace GameServerExample2B
             else if (room.CountClient() > 1)
             {
                if( except != room.Player2 && room.Player2 != null)
-                {
+               {
                     room.Player2.Enqueue(packet);
-                }
+               }
             }
           
         }
@@ -335,10 +353,10 @@ namespace GameServerExample2B
 
         public bool RegisterGameObject(GameObject gameObject, uint roomID)
         {
-            Room room = GetRoomFromId(roomIdInServer);
+            Room room = GetRoomFromId(roomID);
             if(room != null)
             {
-                return room.RegisterGameObject(gameObject, roomIdInServer);
+                return room.RegisterGameObject(gameObject, roomID);
             }
             return false;
         }

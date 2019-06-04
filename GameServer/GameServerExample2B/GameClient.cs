@@ -24,6 +24,21 @@ namespace GameServerExample2B
             }
         }
 
+        private uint id;
+
+        public uint Id
+        {
+            get
+            {
+                return id;
+            }
+
+            set
+            {
+                id = value;
+            }
+        }
+
         private bool isReady;
 
         public bool IsReady
@@ -55,6 +70,7 @@ namespace GameServerExample2B
             ackTable = new Dictionary<uint, Packet>();
             Malus = 0;
             this.server = server;
+            
         }
 
         public void Process()

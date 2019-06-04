@@ -51,7 +51,7 @@ namespace GameServerExample2B
 
         public GameObject()
         {
-            Console.WriteLine("spawned GameObject {0} of type {1}", Id, ObjectType);
+            //Console.WriteLine("spawned GameObject {0} of type {1}", Id, ObjectType);
         }
 
         public GameObject(uint objectType,GameServer server)
@@ -59,7 +59,7 @@ namespace GameServerExample2B
             internalObjectType = objectType;
             internalId = ++gameObjectCounter;
             this.server = server;
-            Console.WriteLine("spawned GameObject {0} of type {1}", Id, ObjectType);
+            Console.WriteLine("Added GameObject {0} of type {1}", Id, ObjectType);
         }
 
         public void Register(GameServer server)

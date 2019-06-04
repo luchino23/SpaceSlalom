@@ -21,13 +21,17 @@ namespace GameServerExample2B
             get { return clients[1]; }
         }
 
-        private bool gameStarted;
+        private bool gameStarted = false;
 
         public bool GameStarted
         {
             get
             {
                 return gameStarted;
+            }
+            set
+            {
+                gameStarted = value;
             }
         }
 
@@ -64,7 +68,7 @@ namespace GameServerExample2B
             {
                 gameObjectsTable.Add(id, gameObject);
 
-                Console.WriteLine("Spawned GameObject Type : {0}, Id : {1})", gameObject.GetType(), gameObject.Id);
+                Console.WriteLine("Added in room GameObject Type : {0}, Id : {1})", gameObject.GetType(), gameObject.Id);
                 return true;
                 
             }
@@ -74,7 +78,7 @@ namespace GameServerExample2B
         public void UpdateRoom()
         {
 
-            if (GameStarted)
+            if (gameStarted)
             {
                 foreach (GameObject gameObj in gameObjectsTable.Values)
                 {
@@ -109,22 +113,25 @@ namespace GameServerExample2B
             return clients.Count();
        } 
 
-        public void SetPlayerReady(GameClient client, bool isReady)
-        {
+       
+
+       public void SetPlayerReady(GameClient client, bool isReady)
+       {
             if(Player1 == client)
             {
                 Player1.SetReady(isReady);
             }
-            else if( Player2 == client)
+            else if(Player2 == client)
             {
                 Player2.SetReady(isReady);
             }
 
             if(Player1.IsReady && Player2.IsReady)
             {
+                gameStarted = true;
                 server.StartGame(RoomId);
             }
-        }
+       }
 
         public bool IsOccupy
         {

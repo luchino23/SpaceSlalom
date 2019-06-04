@@ -7,11 +7,14 @@ using System;
 
 public class GameClient : MonoBehaviour
 {
-    [SerializeField]
-    private string address;
+    
+    public string clientaddress;
 
-    [SerializeField]
-    private int port;
+    public int clientport;
+
+    public string serverAddress;
+
+    public int serverPort;
 
     [System.Serializable]
     struct NetPrefab
@@ -35,14 +38,15 @@ public class GameClient : MonoBehaviour
     private Dictionary<byte, GameCommand> commandsTable;
 
     private Socket socket;
-    private IPEndPoint endPoint;
-
+    private IPEndPoint clientendPoint;
+    private static IPEndPoint serverEndPoint;
     private bool serverIsOnline;
 
     public GameObject backGround;
     public Camera cam;
     public GameObject startingMenu;
     public GameObject sceneElements;
+    public GameObject loadingObj;
 
 
 
@@ -56,13 +60,23 @@ public class GameClient : MonoBehaviour
         }
     }
 
-    private bool isReady;
+    private bool isReadyPlayer1;
 
-    public bool IsReady
+    public bool IsReadyPlayer1
     {
         get
         {
-            return isReady;
+            return isReadyPlayer1;
+        }
+    }
+
+    private bool isReadyPlayer2;
+
+    public bool IsReadyPlayer2
+    {
+        get
+        {
+            return isReadyPlayer2;
         }
     }
 
@@ -84,26 +98,49 @@ public class GameClient : MonoBehaviour
         netGameObjects = new Dictionary<uint, GameObject>();
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         socket.Blocking = false;
-        endPoint = new IPEndPoint(IPAddress.Parse(address), port);
+        clientendPoint = new IPEndPoint(IPAddress.Parse(clientaddress), clientport);
+        socket.Bind(clientendPoint);
+
+        serverEndPoint = new IPEndPoint(IPAddress.Parse(serverAddress), serverPort);
+    }
+
+    public bool Send(byte[] data)
+    {
+        bool success = false;
+        try
+        {
+            int rlen = socket.SendTo(data, serverEndPoint);
+            if (rlen == data.Length)
+                success = true;
+        }
+        catch
+        {
+            success = false;
+        }
+        return success;
     }
 
     // Start is called before the first frame update
     void Start()
     {
+
         
+        isReadyPlayer1 = false;
+
         backGround.SetActive(false);
         cam.gameObject.SetActive(false);
         startingMenu.SetActive(true);
         sceneElements.SetActive(true);
+        loadingObj.SetActive(false);
 
         commandsTable = new Dictionary<byte, GameCommand>();
 
         //commandsTable[0] = Join;
-        commandsTable[1] = Spawn;
-        commandsTable[5] = JoinRoom;
+        commandsTable[2] = Spawn;
+        commandsTable[1] = Welcome;
         commandsTable[6] = SpawnAsteroids;
         
-        commandsTable[8] = SetReady;
+        commandsTable[8] = SetOneReady;
         commandsTable[9] = DestroyAsteroid;
         commandsTable[10] = SpaceShipCollision;
         commandsTable[253] = StatusServer;
@@ -121,12 +158,27 @@ public class GameClient : MonoBehaviour
         
     }
 
-    public void SetReady(byte[] data, EndPoint sender)
+    public void SetOneReady(byte[] data, EndPoint sender)
     {
-        isReady = !isReady;
-        Packet startPacket = new Packet(8, roomId);
-        socket.SendTo(startPacket.GetData(), sender);
-        Debug.Log("start");
+        //roomId = BitConverter.ToUInt32(data, 1);
+        //myNetId = BitConverter.ToUInt32(data, 5);
+                
+
+        //if (isReadyPlayer1 ^ isReadyPlayer2)
+        //{
+        //    loadingObj.SetActive(true);
+        //    startingMenu.SetActive(false);
+        //}
+        //else if (isReadyPlayer1 && IsReadyPlayer2)
+        //{
+        //    backGround.SetActive(true);
+        //    cam.gameObject.SetActive(true);
+        //    startingMenu.SetActive(false);
+        //    sceneElements.SetActive(false);
+
+        //    Packet start = new Packet(8, roomId, myNetId);
+           
+        //}
     }
 
     private void SpawnAsteroids(byte[] data, EndPoint sender)
@@ -159,38 +211,60 @@ public class GameClient : MonoBehaviour
             newGameObject.transform.position = position;
         }
 
-        Packet spawnAsteroids = new Packet(6, netId, roomId, asteroidTimer);
-        socket.SendTo(spawnAsteroids.GetData(), sender);
     }
 
     private void Spawn(byte[] data, EndPoint sender)
     {
         uint prefabType = BitConverter.ToUInt32(data, 1);
-        uint netId = BitConverter.ToUInt32(data, 5);
+        myNetId = BitConverter.ToUInt32(data, 5);
         float x = BitConverter.ToSingle(data, 9);
         float y = BitConverter.ToSingle(data, 13);
         float z = BitConverter.ToSingle(data, 17);
 
-        if (!netGameObjects.ContainsKey(netId) && netPrefabsCache.ContainsKey(prefabType))
+        if (netPrefabsCache.ContainsKey(prefabType) && myGameObject == null)
         {
             GameObject prefab = netPrefabsCache[prefabType];
-            GameObject newGameObject = Resources.Load("Player") as GameObject;
+            myGameObject = Resources.Load("Player1") as GameObject;
             Vector3 position;
             position.x = x;
             position.y = y;
             position.z = z;
-            newGameObject.name = string.Format("NetObject {0}", netId);
-            newGameObject.transform.position = position;
-            netGameObjects[netId] = newGameObject;
+            myGameObject.name = string.Format("Me {0}", myNetId);
+            myGameObject.transform.position = position;
+            netGameObjects[myNetId] = myGameObject;
         }
     }
 
-    private void JoinRoom(byte[] data, EndPoint sender)
+    private void Welcome(byte[] data, EndPoint sender)
     {
         roomId = BitConverter.ToUInt32(data, 1);
+        myNetId = BitConverter.ToUInt32(data, 5);
+
+        Debug.Log("Welcome Arrived");
+
+
+        if (myNetId == 1)
+            isReadyPlayer1 = true;
+        else if (myNetId == 2)
+            isReadyPlayer2 = true;
+
+        if (isReadyPlayer1 ^ isReadyPlayer2)
+        {
+            loadingObj.SetActive(true);
+            startingMenu.SetActive(false);
+        }
+        else if (isReadyPlayer1 && IsReadyPlayer2)
+        {
+            backGround.SetActive(true);
+            cam.gameObject.SetActive(true);
+            startingMenu.SetActive(false);
+            sceneElements.SetActive(false);
+        }
+
+
     }
 
-    
+
 
     private void StatusServer(byte[]data, EndPoint sender)
     {
@@ -198,24 +272,21 @@ public class GameClient : MonoBehaviour
 
         serverOfflineTImer = defaultOfflineTimer;
     }
-
-    public void GameStarted(byte[] data, EndPoint sender)
-    {
-        backGround.SetActive(true);
-        cam.gameObject.SetActive(true);
-        startingMenu.SetActive(false);
-        sceneElements.SetActive(false);
-
-        Packet ackStart = new Packet(255);
-        socket.SendTo(ackStart.GetData(), sender);
-
-    }
+   
 
     public void JoinButton()
     {
         Packet join = new Packet(0);
-        socket.SendTo(join.GetData(), endPoint);
-        
+        Send(join.GetData());
+
+        //if (myNetId == 1)
+        //    isReadyPlayer1 = true;
+        //else if (myNetId == 2)
+        //    isReadyPlayer2 = true;
+
+        //Packet welcome = new Packet(this, 1, room.RoomId, newClient.Id);
+
+
     }
 
 
@@ -268,13 +339,14 @@ public class GameClient : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.Log(isReadyPlayer1);
         defaultOfflineTimer -= Time.deltaTime;
         defaultServerStatusTimer -= Time.deltaTime;
 
         if(serverStatusTimer < 0)
         {
             Packet serverStatusPacket = new Packet(253, serverIsOnline);
-            socket.SendTo(serverStatusPacket.GetData(), endPoint);
+            socket.SendTo(serverStatusPacket.GetData(), clientendPoint);
 
             serverStatusTimer = defaultServerStatusTimer;
         }
@@ -303,12 +375,8 @@ public class GameClient : MonoBehaviour
 
             Vector3 myPosition = myGameObject.transform.position;
             Packet updatePosition = new Packet(3, myNetId, roomId, myPosition.x, myPosition.y, myPosition.z);
-            socket.SendTo(updatePosition.GetData(), endPoint);
-
-            //if(asteroidTimer <= 0)
-            //{
-            //    SpawnAsteroidsAtRAndomTime();
-            //}
+            socket.SendTo(updatePosition.GetData(), clientendPoint);
+            
         }
         const int maxPackets = 100;
         byte[] data = new byte[256];
@@ -329,7 +397,7 @@ public class GameClient : MonoBehaviour
                 byte command = data[0];
                 Console.WriteLine();
                 if (commandsTable.ContainsKey(command))
-                    commandsTable[command](data, endPoint);
+                    commandsTable[command](data, clientendPoint);
 
             }
             //    if (command == 2)
@@ -390,8 +458,27 @@ public class GameClient : MonoBehaviour
             //            position.z = z;
             //            updatedGameObject.transform.position = position;
             //        }
-            //    }
-            
+            //    } uint prefabType = BitConverter.ToUInt32(data, 1);
+            //uint netId = BitConverter.ToUInt32(data, 5);
+            //float x = BitConverter.ToSingle(data, 9);
+            //float y = BitConverter.ToSingle(data, 13);
+            //float z = BitConverter.ToSingle(data, 17);
+
+            //if (!netGameObjects.ContainsKey(netId) && netPrefabsCache.ContainsKey(prefabType))
+            //{
+            //    GameObject prefab = netPrefabsCache[prefabType];
+            //    GameObject newGameObject = Resources.Load("Player") as GameObject;
+            //    Vector3 position;
+            //    position.x = x;
+            //    position.y = y;
+            //    position.z = z;
+            //    newGameObject.name = string.Format("NetObject {0}", netId);
+            //    newGameObject.transform.position = position;
+            //    netGameObjects[netId] = newGameObject;
+
+            //    Debug.Log("spaw");
+            //}
+
         }
     }
 }
