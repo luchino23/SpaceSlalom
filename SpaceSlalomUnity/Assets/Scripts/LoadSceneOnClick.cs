@@ -7,6 +7,6 @@ public class LoadSceneOnClick : MonoBehaviour
 {
     public void Exit()
     {
-        UnityEditor.EditorApplication.isPlaying = false;
+       // UnityEditor.EditorApplication.isPlaying = false;
     }
 }
