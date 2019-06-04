@@ -2703,9 +2703,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5d0255a02b3e9c4682b2dd2fb1ddfd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clientaddress: 192.168.1.124
+  clientaddress: 192.168.1.191
   clientport: 9997
-  serverAddress: 192.168.1.124
+  serverAddress: 192.168.1.191
   serverPort: 9999
   netPrefabs: []
   roomId: 0
@@ -2868,6 +2868,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SF Scene Elements
       objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2915,10 +2919,6 @@ PrefabInstance:
     - target: {fileID: 400002, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 100000, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7461a7b0cf97947fd9b9e4502fd2d07b, type: 3}

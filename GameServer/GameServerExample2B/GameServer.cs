@@ -47,7 +47,8 @@ namespace GameServerExample2B
                 }
                 //create an empty room
                 Room room = new Room(this, roomIdInServer);
-                roomIdInServer++;              
+                roomIdInServer++;
+                Rooms.Add(room);
 
                 Console.WriteLine("Create room with id {0}", roomIdInServer);
 
@@ -217,7 +218,6 @@ namespace GameServerExample2B
             }
 
             StartGame(roomId);
-           
 
             //Packet 
             //(client, roomid)
