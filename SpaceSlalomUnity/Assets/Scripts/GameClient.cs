@@ -48,7 +48,14 @@ public class GameClient : MonoBehaviour
     public GameObject sceneElements;
     public GameObject loadingObj;
 
-
+    private bool gameStarted;
+    public bool GameStarted
+    {
+        get
+        {
+            return gameStarted;
+        }
+    }
 
     private float asteroidTimer;
 
@@ -57,26 +64,6 @@ public class GameClient : MonoBehaviour
         get
         {
             return serverIsOnline;
-        }
-    }
-
-    private bool isReadyPlayer1;
-
-    public bool IsReadyPlayer1
-    {
-        get
-        {
-            return isReadyPlayer1;
-        }
-    }
-
-    private bool isReadyPlayer2;
-
-    public bool IsReadyPlayer2
-    {
-        get
-        {
-            return isReadyPlayer2;
         }
     }
 
@@ -123,11 +110,8 @@ public class GameClient : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
-        
-        isReadyPlayer1 = false;
-        isReadyPlayer2 = false;
-
+        gameStarted = false;
+       
         backGround.SetActive(false);
         cam.gameObject.SetActive(false);
         startingMenu.SetActive(true);
@@ -137,16 +121,27 @@ public class GameClient : MonoBehaviour
         commandsTable = new Dictionary<byte, GameCommand>();
 
         //commandsTable[0] = Join;
-        commandsTable[2] = Spawn;
         commandsTable[1] = Welcome;
+        commandsTable[2] = Spawn;
+        // commandsTable[3] = Update;
+        commandsTable[5] = Startgame;
         commandsTable[6] = SpawnAsteroids;
-        
-        commandsTable[8] = SetOneReady;
+        //commandsTable[8] = SetOneReady;
         commandsTable[9] = DestroyAsteroid;
         commandsTable[10] = SpaceShipCollision;
         commandsTable[253] = StatusServer;
         //commandsTable[255] = Ack;
+    }
 
+    private void Startgame(byte[] data, EndPoint sender)
+    {
+
+        Debug.Log("game started");
+        backGround.SetActive(true);
+        cam.gameObject.SetActive(true);
+        startingMenu.SetActive(false);
+        sceneElements.SetActive(false);
+        loadingObj.SetActive(false);
     }
 
     private void SpaceShipCollision(byte[] data, EndPoint sender)
@@ -159,123 +154,59 @@ public class GameClient : MonoBehaviour
         
     }
 
-    public void SetOneReady(byte[] data, EndPoint sender)
-    {
-        roomId = BitConverter.ToUInt32(data, 1);
-        myNetId = BitConverter.ToUInt32(data, 5);
-
-        if (myNetId == 1)
-            isReadyPlayer1 = true;
-        else if (myNetId == 2)
-            isReadyPlayer2 = true;
-
-        if (isReadyPlayer1 ^ isReadyPlayer2)
-        {
-            loadingObj.SetActive(true);
-            startingMenu.SetActive(false);
-        }
-        else if (isReadyPlayer1 && IsReadyPlayer2)
-        {
-            backGround.SetActive(true);
-            cam.gameObject.SetActive(true);
-            startingMenu.SetActive(false);
-            sceneElements.SetActive(false);
-
-            Packet start = new Packet(8, roomId, myNetId);
-
-        }
-    }
 
     private void SpawnAsteroids(byte[] data, EndPoint sender)
-    {
-        
-        System.Random random = new System.Random();
+    {     
+        //System.Random random = new System.Random();
         uint prefabType = BitConverter.ToUInt32(data, 1);
         uint netId = BitConverter.ToUInt32(data, 5);
-        float x = BitConverter.ToSingle(data, 9);
-        float y = BitConverter.ToSingle(data, 13);
-        float z = BitConverter.ToSingle(data, 17);
-
+        uint roomId = BitConverter.ToUInt32(data, 9);
+        float x = BitConverter.ToSingle(data, 13);
+        float y = BitConverter.ToSingle(data, 17);
+        Debug.Log("x: " + x);
+        Debug.Log("y: " + y);
+        Debug.Log("spawnatop");
         if (!netGameObjects.ContainsKey(netId) && netPrefabsCache.ContainsKey(prefabType))
         {
-            
             GameObject prefab = netPrefabsCache[prefabType];
-            GameObject newGameObject = Resources.Load("Asteroid") as GameObject;
-            
-            Vector3 position;
-            float rotationValue = random.Next(0, 360);
-            newGameObject.transform.rotation = Quaternion.Euler(new Vector3(rotationValue, rotationValue, rotationValue));
-
-            float randomScale = random.Next(-4, 5);
-            newGameObject.transform.localScale = new Vector3(randomScale, randomScale, randomScale) /10;
-
-            position.x = x;
-            position.y = y;
-            position.z = z;
+            GameObject newGameObject = Instantiate(Resources.Load("Asteroid")) as GameObject;
             newGameObject.name = string.Format("NetObject {0}", netId);
-            newGameObject.transform.position = position;
+            newGameObject.transform.position = new Vector3(x, y);
         }
 
+        //float rotationValue = random.Next(0, 360);
+        //newGameObject.transform.rotation = Quaternion.Euler(new Vector3(rotationValue, rotationValue, rotationValue));
+        //float randomScale = random.Next(-4, 5);
+        //newGameObject.transform.localScale = new Vector3(randomScale, randomScale, randomScale) /10;
     }
 
     private void Spawn(byte[] data, EndPoint sender)
     {
         uint prefabType = BitConverter.ToUInt32(data, 1);
-        myNetId = BitConverter.ToUInt32(data, 5);
-        float x = BitConverter.ToSingle(data, 9);
-        float y = BitConverter.ToSingle(data, 13);
-        float z = BitConverter.ToSingle(data, 17);
+        uint myNetId = BitConverter.ToUInt32(data, 5);
+        uint roomId = BitConverter.ToUInt32(data, 9);
+        float x = BitConverter.ToSingle(data, 13);
+        float y = BitConverter.ToSingle(data, 17);
 
         if (netPrefabsCache.ContainsKey(prefabType) && myGameObject == null)
         {
             GameObject prefab = netPrefabsCache[prefabType];
-            myGameObject = Resources.Load("Player1") as GameObject;
-            Vector3 position;
-            position.x = x;
-            position.y = y;
-            position.z = z;
+            myGameObject = Instantiate(Resources.Load("Player1")) as GameObject;            
             myGameObject.name = string.Format("Me {0}", myNetId);
-            myGameObject.transform.position = position;
+            myGameObject.transform.position = new Vector3(x, y);
             netGameObjects[myNetId] = myGameObject;
-        }
+        }       
     }
 
     private void Welcome(byte[] data, EndPoint sender)
     {
-        roomId = BitConverter.ToUInt32(data, 1);
-        myNetId = BitConverter.ToUInt32(data, 5);
+        myNetId = BitConverter.ToUInt32(data, 1);
+        roomId = BitConverter.ToUInt32(data, 5);        
 
         Debug.Log("Welcome Arrived");
 
-
-        //if (myNetId == 1)
-        //    isReadyPlayer1 = true;
-        //else if (myNetId == 2)
-        //    isReadyPlayer2 = true;
-
-        //if (isReadyPlayer1 ^ isReadyPlayer2)
-        //{
-        //    loadingObj.SetActive(true);
-        //    startingMenu.SetActive(false);
-        //}
-        //else if (isReadyPlayer1 && IsReadyPlayer2)
-        //{
-        //    backGround.SetActive(true);
-        //    cam.gameObject.SetActive(true);
-        //    startingMenu.SetActive(false);
-        //    sceneElements.SetActive(false);
-        //}
-
-        //if(isReadyPlayer1 && isReadyPlayer2)
-        //{
-        //    loadingObj.SetActive(true);
-        //    startingMenu.SetActive(false);
-        //    backGround.SetActive(true);
-        //    cam.gameObject.SetActive(true);
-        //    startingMenu.SetActive(false);
-        //    sceneElements.SetActive(false);
-        //}
-
+        Packet ready = new Packet(8, myNetId, roomId);
+        Send(ready.GetData());
 
     }
 
@@ -293,15 +224,13 @@ public class GameClient : MonoBehaviour
     {
         Packet join = new Packet(0);
         Send(join.GetData());
+        Debug.Log("join");
 
-        //if (myNetId == 1)
-        //    isReadyPlayer1 = true;
-        //else if (myNetId == 2)
-        //    isReadyPlayer2 = true;
-
-        //Packet welcome = new Packet(this, 1, room.RoomId, newClient.Id);
-
-
+        startingMenu.SetActive(false);
+        //sceneElements.SetActive(false);
+        loadingObj.SetActive(true);
+        backGround.SetActive(false);
+        cam.gameObject.SetActive(false);
     }
 
 
@@ -348,13 +277,13 @@ public class GameClient : MonoBehaviour
     public void OnPlayerCollision()
     {
         //packet (10, netId, roomId)
-
     }
 
     // Update is called once per frame
     void Update()
-    {
-        Debug.Log(isReadyPlayer1);
+    {        
+        Debug.Log(myNetId + " net id");
+        
         defaultOfflineTimer -= Time.deltaTime;
         defaultServerStatusTimer -= Time.deltaTime;
 

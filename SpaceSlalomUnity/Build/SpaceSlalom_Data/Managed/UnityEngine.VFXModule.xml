@@ -670,7 +670,7 @@
     </member>
     <member name="T:UnityEngine.Experimental.VFX.VisualEffect">
       <summary>
-        <para>The visual effect class that references an Experimental.VFX.VisualEffectAsset instance within the scene.</para>
+        <para>The visual effect class that references an Experimental.VFX.VisualEffectAsset instance within the Scene.</para>
       </summary>
     </member>
     <member name="P:UnityEngine.Experimental.VFX.VisualEffect.aliveParticleCount">
@@ -1147,13 +1147,13 @@
     </member>
     <member name="M:UnityEngine.Experimental.VFX.VisualEffect.Play(UnityEngine.Experimental.VFX.VFXEventAttribute)">
       <summary>
-        <para>Sends a stop event to all Spawn systems. If Experimental.VFX.VisualEffect._resetSeedOnPlay is true, this methods recomputes a new random seed for the random value generator.</para>
+        <para>Sends a stop event to all Spawn systems. If Experimental.VFX.VisualEffect._resetSeedOnPlay is true, this methods recomputes a new random seed for the random value generator and resets internal total time to zero.</para>
       </summary>
       <param name="eventAttribute">Can be null or eventAttribute instantiated with Experimental.VFX.VisualEffect.CreateVFXEventAttribute.</param>
     </member>
     <member name="M:UnityEngine.Experimental.VFX.VisualEffect.Play">
       <summary>
-        <para>Sends a stop event to all Spawn systems. If Experimental.VFX.VisualEffect._resetSeedOnPlay is true, this methods recomputes a new random seed for the random value generator.</para>
+        <para>Sends a stop event to all Spawn systems. If Experimental.VFX.VisualEffect._resetSeedOnPlay is true, this methods recomputes a new random seed for the random value generator and resets internal total time to zero.</para>
       </summary>
       <param name="eventAttribute">Can be null or eventAttribute instantiated with Experimental.VFX.VisualEffect.CreateVFXEventAttribute.</param>
     </member>

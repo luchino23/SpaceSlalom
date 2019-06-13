@@ -8,31 +8,50 @@ namespace GameServerExample2B
 {
     public class Room
     {
-        private GameClient[] clients;
-
         private GameServer server;
 
-         public GameClient Player1
-         {
-            get { return clients[0]; }
-         }
-        public GameClient Player2
+        private List<GameClient> clientsTable;
+
+        public bool RoomContainsThisClient(uint id)
         {
-            get { return clients[1]; }
+            foreach (GameClient client in clientsTable)
+                if (client.Id == id)
+                    return true;
+            return false;
+        }
+        public List<GameClient> GetClientTable()
+        {
+            return clientsTable;
+        }
+        public GameClient GetClient(uint id)
+        {
+            foreach (GameClient client in clientsTable)
+                if (client.Id == id)
+                    return client;
+            return null;
+        }
+        
+        public GameClient Player1
+        {
+            get { return clientsTable[0]; }
         }
 
-        private bool gameStarted = false;
-
-        public bool GameStarted
+        public GameClient Player2        
         {
             get
             {
-                return gameStarted;
+                if (clientsTable.Count > 1)
+                    return clientsTable[1];
+                return null;
             }
-            set
-            {
-                gameStarted = value;
-            }
+        }
+
+        public const int ROOM_MAXSIZE = 2;
+        private bool gameStarted;
+        public bool GameStarted { get { return gameStarted; } }
+        public void StartGame()
+        {
+            gameStarted = true;
         }
 
         private uint id;
@@ -42,11 +61,9 @@ namespace GameServerExample2B
         }
 
         private float asteroidTimeSpawn;
-        
 
         public Dictionary<uint, GameObject> gameObjectsTable;
         
-
         public uint NumGameObjects
         {
             get
@@ -60,6 +77,8 @@ namespace GameServerExample2B
             if (gameObjectsTable.ContainsKey(gameObject.Id))
                 throw new Exception("GameObject already registered");
             gameObjectsTable[gameObject.Id] = gameObject;
+            Console.WriteLine("Room {0}, Spawned GameObject: {1}", RoomId, gameObjectsTable.Count);
+
         }
 
         public bool RegisterGameObject(GameObject gameObject,uint id)
@@ -68,7 +87,7 @@ namespace GameServerExample2B
             {
                 gameObjectsTable.Add(id, gameObject);
 
-                Console.WriteLine("Added in room GameObject Type : {0}, Id : {1})", gameObject.GetType(), gameObject.Id);
+                Console.WriteLine("Added in room : {0} GameObject Type : {1}, Id : {2})", RoomId, gameObject.ObjectType, gameObject.Id);
                 return true;
                 
             }
@@ -77,7 +96,6 @@ namespace GameServerExample2B
 
         public void UpdateRoom()
         {
-
             if (gameStarted)
             {
                 foreach (GameObject gameObj in gameObjectsTable.Values)
@@ -88,74 +106,92 @@ namespace GameServerExample2B
                 if (server.Now >= asteroidTimeSpawn)
                 {
                     server.SpawnAsteroids(this);
+                    //server.SpawnAvatar(this);
                     SetSpawnTimer();
                 }
+
+                if (Player1 != null && Player2 != null)
+                    if (Player1.IsReady && Player2.IsReady && !gameStarted)
+                    {
+                        server.GameStart(this);
+                        //server.SpawnAvatar(this);
+                    }
+
+                //if (gameStarted && !spawnTeam && gameObjectsTable.Count >= 8)
+                //    server.SpawnHeroes(this);
             }
-        
-            
         }
        
 
-        //public GameObject GetIdOfGameObject(uint id)
-        //{
-        //    if (gameObjectsTable.ContainsKey(id))
-        //    {
-        //        gameObjectsTable.Add(id);
-        //    }
-        //}
-       public bool ContainsClient(GameClient client)
-       {
-            return clients.Contains(client);
-       }
+        public GameObject GetGameObjectFromId(uint id)
+        {
+            if (gameObjectsTable.ContainsKey(id))
+                return gameObjectsTable[id];
+            return null;
+        }
 
-       public int CountClient()
-       {
-            return clients.Count();
-       } 
+        public bool ContainsClient(GameClient client)
+        {
+            return clientsTable.Contains(client);
+        }
 
+        public int CountClient()
+        {
+            return clientsTable.Count();
+        }
        
+        public void SetPlayersReady(uint clientId)
+        {          
+            if(RoomContainsThisClient(clientId))
+            {
+                GameClient client = GetClient(clientId);
 
-       public void SetPlayerReady(GameClient client, bool isReady)
-       {
-            if(Player1 == client)
-            {
-                Player1.SetReady(isReady);
-            }
-            else if(Player2 == client)
-            {
-                Player2.SetReady(isReady);
-            }
-
-            if(Player1.IsReady && Player2.IsReady)
-            {
-                gameStarted = true;
-                server.StartGame(RoomId);
                 
+                client.SetReady(true);
+
+                Console.WriteLine(client.IsReady + "client");
+
+                if (Player1 != null && Player2 != null)
+                    if (Player1.IsReady && Player2.IsReady && !gameStarted)
+                        server.GameStart(this);
             }
-       }
+        }
 
         public bool IsOccupy
         {
             get
             {
-                return Player1 != null && Player2 != null;
+                return clientsTable.Count >= ROOM_MAXSIZE;
+            }
+        }
+
+        public void AddGameClient(GameClient newGameClient)
+        {
+            if (clientsTable.Count < ROOM_MAXSIZE)
+            {
+                clientsTable.Add(newGameClient);
+                if (newGameClient == Player1)
+                    newGameClient.JoinInTheRoom(this);
+                else if (newGameClient == Player2)
+                    newGameClient.JoinInTheRoom(this);
             }
         }
 
         public Room(GameServer server, uint roomId)
         {
-            clients = new GameClient[2];
+            clientsTable = new List<GameClient>(ROOM_MAXSIZE);
             gameObjectsTable = new Dictionary<uint, GameObject>();
             this.server = server;
             this.id = roomId;
-
+            gameStarted = false;
         }
 
         private void SetSpawnTimer()
         {
             Random random = new Random();
-            float offset = random.Next(3, 10);
-            asteroidTimeSpawn += offset;
+            float offset = random.Next(2, 5);
+           // offset *= 1;
+            asteroidTimeSpawn = server.Now + offset;
 
         }
 
@@ -164,20 +200,17 @@ namespace GameServerExample2B
          
             if(!this.ContainsClient(client))
             {
-                for (int i = 0; i < clients.Length; i++)
+                for (int i = 0; i < clientsTable.Count; i++)
                 {
-                    if(clients[i] == null)
+                    if(clientsTable[i] == null)
                     {
-                        clients[i] = client;
+                        clientsTable[i] = client;
                         return;
                     }
                     
                 }
-            }        
+            }     
           
-
         }
-
-        
     }
 }

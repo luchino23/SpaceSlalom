@@ -8,13 +8,18 @@ namespace GameServerExample2B
 {
     class Asteroids : GameObject
     {
-        public Asteroids(GameServer server) : base(1,server)
+        public Asteroids(GameServer server) : base(1, server)
         {
-            Random random = new Random();
-            randomSpawnY = random.Next(3, 97);
-            randomSpawnY /= 100;
+           
+            //SetVelocity(vel.X, vel.Y);
 
+            //pos.X = 100;
+
+            Random random = new Random();
+            
+            randomSpawnY = random.Next(-4, 4);
             SetLifeTime();
+            SetPosition(10,randomSpawnY);
         }
 
         private float lifeTime;
@@ -46,6 +51,7 @@ namespace GameServerExample2B
                 return randomSpawnY;
             }
         }
+        
 
         public void SetLifeTime()
         {
@@ -53,7 +59,6 @@ namespace GameServerExample2B
             lifeTime = random.Next(8, 30);
             lifeTimeOnServer = server.Now + lifeTime + 2;
             lifeTime /= 10f;
-
         }
 
         public override void Tick()
@@ -63,24 +68,22 @@ namespace GameServerExample2B
             //packet.OneShot = true;
             //server.SendToAllInARoom(packet, Room);
 
-            if(lifeTimeOnServer <= server.Now)
-            {
-                //destroy Asteroids
-            }
+            //if(lifeTimeOnServer <= server.Now)
+            //{
+            //    //destroy Asteroids
+            //}
         }
 
         public void OnAsteroidDestroy()
         {
-
-            
             //      if(gameObjectTable.ContainsKey(room.roomId)
             //          
-            //}
-        
+            //}  
         }
 
-        
-
-        
+        public override void SetVelocity(float x, float y)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
