@@ -14,6 +14,11 @@ namespace GameServerExample2B
 
         public uint Malus;
 
+        public EndPoint GetEndPoint()
+        {
+            return endPoint;
+        }
+
         private Room room;
 
         public Room Room
@@ -24,6 +29,7 @@ namespace GameServerExample2B
             }
         }
 
+        private static uint idCounter;
         private uint id;
 
         public uint Id
@@ -40,18 +46,11 @@ namespace GameServerExample2B
         }
 
         private bool isReady;
-
-        public bool IsReady
-        {
-            get
-            {
-                return isReady;
-            }
-        }
-
+        public bool IsReady { get { return isReady; } }
         public void SetReady(bool ready)
         {
-            isReady = ready;
+            if (room != null)
+                isReady = ready;
         }
 
         public void JoinInTheRoom(Room room)
@@ -69,6 +68,7 @@ namespace GameServerExample2B
             ackTable = new Dictionary<uint, Packet>();
             Malus = 0;
             this.server = server;
+            id = ++idCounter;
             
         }
 

@@ -492,6 +492,11 @@ The FontEngine is also used to raster the visual representation of characters kn
         <para>Error code returned by the LoadGlyph or SetFaceSize functions using an invalid pointSize value.</para>
       </summary>
     </member>
+    <member name="F:UnityEngine.TextCore.LowLevel.FontEngineError.Invalid_Table">
+      <summary>
+        <para>Error code indicating failure to load one of the tables of the font file.</para>
+      </summary>
+    </member>
     <member name="F:UnityEngine.TextCore.LowLevel.FontEngineError.Success">
       <summary>
         <para>Error code returned when the function was successfully executed.</para>
