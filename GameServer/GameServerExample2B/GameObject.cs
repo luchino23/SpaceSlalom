@@ -130,7 +130,7 @@ namespace GameServerExample2B
             //Position.Y += Velocity.Y * (server.Now * 3);
         }
 
-        public virtual void Tick()
+        public virtual void Tick(Room room)
         {
             
         }

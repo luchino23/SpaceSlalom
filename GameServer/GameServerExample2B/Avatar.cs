@@ -25,11 +25,11 @@ namespace GameServerExample2B
             throw new NotImplementedException();
         }
 
-        public override void Tick()
+        public override void Tick(Room room)
         {
-            //Packet packet = new Packet(server, 3, this.Id, Room.RoomId, X, Y, Z);
+            //Packet packet = new Packet(server, 3, this.Id, room.RoomId, Position.X, Position.Y);
             //packet.OneShot = true;
-            //server.SendToAllInARoom(packet, Room);
+            //server.SendToAllInARoom(packet, room);
         }
     }
 }

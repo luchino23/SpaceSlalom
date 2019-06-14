@@ -91,28 +91,28 @@ namespace GameServerExample2B
             Console.WriteLine("Welcome");
 
 
-            //spawn all server's objects in the new client
-            foreach (GameObject gameObject in room.gameObjectsTable.Values)
-            {
-                if (gameObject == avatar)
-                    continue;
-                Packet spawn = new Packet(this, 2, gameObject.ObjectType, gameObject.Id,room.RoomId,gameObject.Position.X, gameObject.Position.Y);//, gameObject.Position.Z);
-                spawn.NeedAck = true;
+            ////spawn all server's objects in the new client
+            //foreach (GameObject gameObject in room.gameObjectsTable.Values)
+            //{
+            //    if (gameObject == avatar)
+            //        continue;
+            //    Packet spawn = new Packet(this, 2, gameObject.ObjectType, gameObject.Id,room.RoomId,gameObject.Position.X, gameObject.Position.Y);//, gameObject.Position.Z);
+            //    spawn.NeedAck = true;
 
 
-                SendToOthersRoom(spawn, room, newClient);
+            //    SendToOthersRoom(spawn, room, newClient);
 
 
 
-                Console.WriteLine("Spawn");
-            }
+            //    Console.WriteLine("Spawn");
+            //}
 
-            // informs the other clients about the new one
-            Packet newClientSpawned = new Packet(this, 2, avatar.ObjectType, avatar.Id,room.RoomId,avatar.Position.X, avatar.Position.Y);//, avatar.Position.Z);
-            newClientSpawned.NeedAck = true;
-            SendToOthersRoom(newClientSpawned, room, newClient);
+            //// informs the other clients about the new one
+            //Packet newClientSpawned = new Packet(this, 2, avatar.ObjectType, avatar.Id,room.RoomId,avatar.Position.X, avatar.Position.Y);//, avatar.Position.Z);
+            //newClientSpawned.NeedAck = true;
+            //SendToOthersRoom(newClientSpawned, room, newClient);
 
-            Console.WriteLine("client {0} joined with avatar {1}", newClient, avatar.Id);
+            //Console.WriteLine("client {0} joined with avatar {1}", newClient, avatar.Id);
 
             Packet JoinRoomPacket = new Packet(this, 11, roomIdInServer);
             JoinRoomPacket.NeedAck = true;
@@ -153,7 +153,20 @@ namespace GameServerExample2B
                     float y = BitConverter.ToSingle(data, 13);
                     //float z = BitConverter.ToSingle(data, 17);
                     gameObject.SetPosition(x, y);
+                    Packet moveOtherPlayer = new Packet(this, 12, netId, roomId, x, y);
+                    if (netId == 1)
+                    {
+                        room.Player2.Enqueue(moveOtherPlayer);
+                    }
+                    else if (netId == 2)
+                    {
+                        room.Player1.Enqueue(moveOtherPlayer);
+                    }
+                    
                 }
+               
+
+
             }
         }
 
@@ -217,19 +230,37 @@ namespace GameServerExample2B
 
         public void SpawnAsteroids(Room room)
         {          
-            Asteroids asteroid = Spawn<Asteroids>(room.RoomId);      
-            Packet asteroidSpawn = new Packet(this, 6, asteroid.ObjectType, asteroid.Id,room.RoomId, asteroid.Position.X, asteroid.Position.Y);
-            Console.WriteLine("lenght: " + asteroidSpawn.GetData().Length);
+            Asteroids asteroid = Spawn<Asteroids>(room.RoomId);
+            room.AsteroidsList().Add(asteroid);      
+            Packet asteroidSpawn = new Packet(this, 6, asteroid.ObjectType, asteroid.Id, room.RoomId, asteroid.Position.X, asteroid.Position.Y);
+            Console.WriteLine("lenght Asteroid : " + asteroidSpawn.GetData().Length);
             SendToAllInARoom(asteroidSpawn,room);
         }
 
-        //public void SpawnAvatar(Room room)
-        //{
-        //    SpaceShip player = Spawn<SpaceShip>(room.RoomId);
-        //    Packet avatarSpawn = new Packet(this, 2, player.ObjectType, player.Id, room.RoomId, player.Position.X, player.Position.Y);
-        //    Console.WriteLine("lenght: " + avatarSpawn.GetData().Length);
-        //    SendToAllInARoom(avatarSpawn, room);
-        //}
+        public void MoveAsteroids(Room room)
+        {
+            foreach (Asteroids asteroid in room.AsteroidsList())
+            { 
+                 Packet moveAsteroid = new Packet(this, 13, asteroid.ObjectType, asteroid.Id, room.RoomId, asteroid.Position.X, asteroid.Position.Y);
+                 SendToAllInARoom(moveAsteroid, room);
+            }
+        }
+
+        public void SpawnAvatar(Room room)
+        {
+            SpaceShip player = Spawn<SpaceShip>(room.RoomId);
+            Packet avatarSpawn = new Packet(this, 11, player.ObjectType, player.Id, room.RoomId, player.Position.X, player.Position.Y);
+            Console.WriteLine("lenghtPlayer1 : " + avatarSpawn.GetData().Length);
+            SendToAllInARoom(avatarSpawn, room);
+            Console.WriteLine();
+        }
+
+        public void SpawnAvatar2(Room room)
+        {
+            SpaceShip2 player2 = Spawn<SpaceShip2>(room.RoomId);
+            Packet avatarSpawn = new Packet(this, 2, player2.ObjectType, player2.Id, room.RoomId, player2.Position.X, player2.Position.Y);
+            SendToAllInARoom(avatarSpawn, room);
+        }
 
         public void Run()
         {    

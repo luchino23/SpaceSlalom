@@ -11,6 +11,12 @@ namespace GameServerExample2B
         private GameServer server;
 
         private List<GameClient> clientsTable;
+        private List<Asteroids> asteroidsList;
+
+        public List<Asteroids> AsteroidsList()
+        {
+            return asteroidsList;
+        }
 
         public bool RoomContainsThisClient(uint id)
         {
@@ -100,7 +106,9 @@ namespace GameServerExample2B
             {
                 foreach (GameObject gameObj in gameObjectsTable.Values)
                 {
-                    gameObj.Tick();
+                    gameObj.Tick(this);
+                    server.MoveAsteroids(this);
+
                 }
 
                 if (server.Now >= asteroidTimeSpawn)
@@ -153,7 +161,12 @@ namespace GameServerExample2B
 
                 if (Player1 != null && Player2 != null)
                     if (Player1.IsReady && Player2.IsReady && !gameStarted)
+                    {
                         server.GameStart(this);
+                        server.SpawnAvatar(this);
+                        server.SpawnAvatar2(this);
+                    }
+
             }
         }
 
@@ -181,6 +194,7 @@ namespace GameServerExample2B
         {
             clientsTable = new List<GameClient>(ROOM_MAXSIZE);
             gameObjectsTable = new Dictionary<uint, GameObject>();
+            asteroidsList = new List<Asteroids>();
             this.server = server;
             this.id = roomId;
             gameStarted = false;
@@ -189,7 +203,7 @@ namespace GameServerExample2B
         private void SetSpawnTimer()
         {
             Random random = new Random();
-            float offset = random.Next(2, 5);
+            float offset = random.Next(5, 10);
            // offset *= 1;
             asteroidTimeSpawn = server.Now + offset;
 
