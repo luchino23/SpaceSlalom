@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameServerExample2B
 {
-    class Asteroids : GameObject
+    public class Asteroids : GameObject
     {
         public Asteroids(GameServer server) : base(1, server)
         {
@@ -61,7 +61,7 @@ namespace GameServerExample2B
             lifeTime /= 10f;
         }
 
-        public override void Tick()
+        public override void Tick(Room room)
         {
             //Packet packet = new Packet(server, 7,  Id, room.RoomId, lifeTime, randomSpawnY);
             //Packet packet = new Packet(server, 6, Id, Room.RoomId, lifeTime, randomSpawnY); fineVita
@@ -72,18 +72,14 @@ namespace GameServerExample2B
             //{
             //    //destroy Asteroids
             //}
-        }
+            SetVelocity(Position.X, Position.Y);
 
-        public void OnAsteroidDestroy()
-        {
-            //      if(gameObjectTable.ContainsKey(room.roomId)
-            //          
-            //}  
         }
-
+    
         public override void SetVelocity(float x, float y)
         {
-            throw new NotImplementedException();
+            Position.X -=  0.000000012f * server.Now;
+            Position.Y = y;
         }
     }
 }

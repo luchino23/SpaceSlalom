@@ -54,6 +54,7 @@
     <Compile Include="Avatar.cs" />
     <Compile Include="Cube.cs" />
     <Compile Include="Room.cs" />
+    <Compile Include="SpaceShip2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -74,6 +74,8 @@ public class GameClient : MonoBehaviour
 
     private uint myNetId;
     private GameObject myGameObject;
+    private GameObject myGameObject2;
+    private Dictionary<uint,GameObject> asteroidsGameObject;
 
     void Awake()
     {
@@ -107,6 +109,16 @@ public class GameClient : MonoBehaviour
         return success;
     }
 
+    private void Startgame(byte[] data, EndPoint sender)
+    {
+
+        Debug.Log("game started");
+        backGround.SetActive(true);
+        cam.gameObject.SetActive(true);
+        startingMenu.SetActive(false);
+        sceneElements.SetActive(false);
+        loadingObj.SetActive(false);
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -119,41 +131,38 @@ public class GameClient : MonoBehaviour
         loadingObj.SetActive(false);
 
         commandsTable = new Dictionary<byte, GameCommand>();
+        asteroidsGameObject = new Dictionary<uint, GameObject>();
 
         //commandsTable[0] = Join;
         commandsTable[1] = Welcome;
-        commandsTable[2] = Spawn;
+        commandsTable[2] = SpawnPlayer1;
         // commandsTable[3] = Update;
         commandsTable[5] = Startgame;
         commandsTable[6] = SpawnAsteroids;
         //commandsTable[8] = SetOneReady;
-        commandsTable[9] = DestroyAsteroid;
-        commandsTable[10] = SpaceShipCollision;
+        //commandsTable[9] = DestroyAsteroid;
+        //commandsTable[10] = SpaceShipCollision;
+        commandsTable[11] = SpawnPlayer2;
+        commandsTable[12] = MoveOtherPlayer;
+        commandsTable[13] = MoveAsteroids;
         commandsTable[253] = StatusServer;
         //commandsTable[255] = Ack;
     }
 
-    private void Startgame(byte[] data, EndPoint sender)
+    private void MoveAsteroids(byte[] data, EndPoint sender)
     {
+        uint prefabType = BitConverter.ToUInt32(data, 1);
+        uint netId = BitConverter.ToUInt32(data, 5);
+        uint roomId = BitConverter.ToUInt32(data, 9);
+        float x = BitConverter.ToSingle(data, 13);
+        float y = BitConverter.ToSingle(data, 17);
 
-        Debug.Log("game started");
-        backGround.SetActive(true);
-        cam.gameObject.SetActive(true);
-        startingMenu.SetActive(false);
-        sceneElements.SetActive(false);
-        loadingObj.SetActive(false);
+
+        asteroidsGameObject[netId].transform.position = new Vector3(x, y);
     }
 
-    private void SpaceShipCollision(byte[] data, EndPoint sender)
-    {
-        throw new NotImplementedException();
-    }
-
-    private void DestroyAsteroid(byte[] data, EndPoint sender)
-    {
-        
-    }
-
+   
+    
 
     private void SpawnAsteroids(byte[] data, EndPoint sender)
     {     
@@ -165,13 +174,14 @@ public class GameClient : MonoBehaviour
         float y = BitConverter.ToSingle(data, 17);
         Debug.Log("x: " + x);
         Debug.Log("y: " + y);
-        Debug.Log("spawnatop");
+        Debug.Log("spawnato");
         if (!netGameObjects.ContainsKey(netId) && netPrefabsCache.ContainsKey(prefabType))
         {
             GameObject prefab = netPrefabsCache[prefabType];
-            GameObject newGameObject = Instantiate(Resources.Load("Asteroid")) as GameObject;
-            newGameObject.name = string.Format("NetObject {0}", netId);
-            newGameObject.transform.position = new Vector3(x, y);
+            GameObject asteroids = Instantiate(Resources.Load("Asteroid")) as GameObject;
+            asteroidsGameObject.Add(netId,asteroids);
+            asteroids.name = string.Format("NetObject {0}", netId);
+            asteroids.transform.position = new Vector3(x, y);
         }
 
         //float rotationValue = random.Next(0, 360);
@@ -180,22 +190,42 @@ public class GameClient : MonoBehaviour
         //newGameObject.transform.localScale = new Vector3(randomScale, randomScale, randomScale) /10;
     }
 
-    private void Spawn(byte[] data, EndPoint sender)
+    private void SpawnPlayer1(byte[] data, EndPoint sender)
     {
         uint prefabType = BitConverter.ToUInt32(data, 1);
         uint myNetId = BitConverter.ToUInt32(data, 5);
         uint roomId = BitConverter.ToUInt32(data, 9);
         float x = BitConverter.ToSingle(data, 13);
         float y = BitConverter.ToSingle(data, 17);
+        
 
         if (netPrefabsCache.ContainsKey(prefabType) && myGameObject == null)
-        {
+        {          
             GameObject prefab = netPrefabsCache[prefabType];
             myGameObject = Instantiate(Resources.Load("Player1")) as GameObject;            
             myGameObject.name = string.Format("Me {0}", myNetId);
             myGameObject.transform.position = new Vector3(x, y);
             netGameObjects[myNetId] = myGameObject;
         }       
+    }
+
+    private void SpawnPlayer2(byte[] data, EndPoint sender)
+    {
+
+        uint prefabType = BitConverter.ToUInt32(data, 1);
+        uint myNetId = BitConverter.ToUInt32(data, 5);
+        uint roomId = BitConverter.ToUInt32(data, 9);
+        float x = BitConverter.ToSingle(data, 13);
+        float y = BitConverter.ToSingle(data, 17);
+
+        if(netPrefabsCache.ContainsKey(prefabType) && myGameObject2 == null)
+        {
+            GameObject prefab = netPrefabsCache[prefabType];
+            myGameObject2 = Instantiate(Resources.Load("Player2")) as GameObject;
+            myGameObject2.name = string.Format("Me {0}", myNetId);
+            myGameObject2.transform.position = new Vector3(x, y);
+            netGameObjects[myNetId] = myGameObject2;
+        }
     }
 
     private void Welcome(byte[] data, EndPoint sender)
@@ -274,9 +304,16 @@ public class GameClient : MonoBehaviour
 
 
     
-    public void OnPlayerCollision()
+
+    private void MoveOtherPlayer(byte[] data, EndPoint sender)
     {
-        //packet (10, netId, roomId)
+        uint myNetId = BitConverter.ToUInt32(data, 1);
+        uint roomId = BitConverter.ToUInt32(data, 5);
+        float x = BitConverter.ToSingle(data, 9);
+        float y = BitConverter.ToSingle(data, 13);
+
+        myGameObject2.transform.position = new Vector3(x, y);
+        Debug.Log("move other player");
     }
 
     // Update is called once per frame
@@ -317,10 +354,18 @@ public class GameClient : MonoBehaviour
                 myGameObject.transform.position += -myGameObject.transform.up * 3 * Time.deltaTime;
             }
 
-            Vector3 myPosition = myGameObject.transform.position;
-            Packet updatePosition = new Packet(3, myNetId, roomId, myPosition.x, myPosition.y, myPosition.z);
-            socket.SendTo(updatePosition.GetData(), clientendPoint);
-            
+            //Vector3 myPosition = myGameObject.transform.position;
+            Packet updatePosition = new Packet(3, myNetId, roomId, myGameObject.transform.position.x, myGameObject.transform.position.y);
+            Debug.Log(myNetId);
+
+            Send(updatePosition.GetData());
+
+
+            //Debug.Log("player 1 x: " + myGameObject.transform.position);
+           
+            //Debug.Log("player 2 x: " + myGameObject2.transform.position);
+
+
         }
         const int maxPackets = 100;
         byte[] data = new byte[256];
