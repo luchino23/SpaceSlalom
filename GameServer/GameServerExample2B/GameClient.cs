@@ -79,57 +79,58 @@ namespace GameServerExample2B
             {
                 Packet packet = sendQueue.Dequeue();
                 // check if the packet con be sent
-                if (server.Now >= packet.SendAfter)
-                {
-                    packet.IncreaseAttempts();
-                    if (server.Send(packet, endPoint))
-                    {
+                //if (server.Now >= packet.SendAfter)
+                //{
+                //    packet.IncreaseAttempts();
+                //if 
+                server.Send(packet, endPoint);
+                    //{
                         // all fine
-                        if (packet.NeedAck)
-                        {
-                            ackTable[packet.Id] = packet;
-                        }
-                    }
+                        //if (packet.NeedAck)
+                        //{
+                      //      ackTable[packet.Id] = packet;
+                        //}
+                    //}
                     // on error, retry sending only if NOT OneShot
-                    else if (!packet.OneShot)
-                    {
-                        if (packet.Attempts < 3)
-                        {
-                            // retry sending after 1 second
-                            packet.SendAfter = server.Now + 1.0f;
-                            sendQueue.Enqueue(packet);
-                        }
-                    }
-                }
-                else
-                {
-                    // it is too early, re-enqueue the packet
-                    sendQueue.Enqueue(packet);
-                }
+                    //else if (!packet.OneShot)
+                    //{
+                    //    if (packet.Attempts < 3)
+                    //    {
+                    //        // retry sending after 1 second
+                    //        packet.SendAfter = server.Now + 1.0f;
+                    //        sendQueue.Enqueue(packet);
+                    //    }
+                    //}
             }
+                //else
+                //{
+                //    // it is too early, re-enqueue the packet
+                //    sendQueue.Enqueue(packet);
+                //}
+            //}
 
             // check ack table
-            List<uint> deadPackets = new List<uint>();
-            foreach (uint id in ackTable.Keys)
-            {
-                Packet packet = ackTable[id];
-                if (packet.IsExpired(server.Now))
-                {
-                    if (packet.Attempts < 3)
-                    {
-                        sendQueue.Enqueue(packet);
-                    }
-                    else
-                    {
-                        deadPackets.Add(id);
-                    }
-                }
-            }
+            //List<uint> deadPackets = new List<uint>();
+            //foreach (uint id in ackTable.Keys)
+            //{
+            //    Packet packet = ackTable[id];
+            //    if (packet.IsExpired(server.Now))
+            //    {
+            //        if (packet.Attempts < 3)
+            //        {
+            //            sendQueue.Enqueue(packet);
+            //        }
+            //        else
+            //        {
+            //            deadPackets.Add(id);
+            //        }
+            //    }
+            //}
 
-            foreach (uint id in deadPackets)
-            {
-                ackTable.Remove(id);
-            }
+            //foreach (uint id in deadPackets)
+            //{
+            //    ackTable.Remove(id);
+            //}
         }
 
         public void Ack(uint packetId)

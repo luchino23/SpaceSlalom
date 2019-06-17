@@ -10,10 +10,10 @@ namespace GameServerExample2B
 
         private static uint packetCounter;
 
-        public float SendAfter;
-        public bool OneShot;
+        //public float SendAfter;
+        //public bool OneShot;
 
-        public bool NeedAck;
+        //public bool NeedAck;
 
         private uint id;
         public uint Id
@@ -24,39 +24,39 @@ namespace GameServerExample2B
             }
         }
 
-        private float expires;
-        public bool IsExpired(float now)
-        {
-            return expires < now;
-        }
+        //private float expires;
+        //public bool IsExpired(float now)
+        //{
+        //    return expires < now;
+        //}
 
-        public void SetExpire(float death)
-        {
-            expires = death;
-        }
+        //public void SetExpire(float death)
+        //{
+        //    expires = death;
+        //}
 
-        private uint attempts;
-        public uint Attempts
-        {
-            get
-            {
-                return attempts;
-            }
-        }
+        //private uint attempts;
+        //public uint Attempts
+        //{
+        //    get
+        //    {
+        //        return attempts;
+        //    }
+        //}
 
-        public void IncreaseAttempts()
-        {
-            attempts++;
-        }
+        //public void IncreaseAttempts()
+        //{
+        //    attempts++;
+        //}
 
         public Packet(GameServer server)
         {
             stream = new MemoryStream();
             writer = new BinaryWriter(stream);
             id = ++packetCounter;
-            attempts = 0;
-            OneShot = false;
-            SendAfter = 0;
+            //attempts = 0;
+            //OneShot = false;
+            //SendAfter = 0;
         }
 
         public Packet(GameServer server, byte command, params object[] elements) : this(server)

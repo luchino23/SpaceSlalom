@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Asteroids.cs" />
+    <Compile Include="Collider2D.cs" />
     <Compile Include="GameClock.cs" />
     <Compile Include="IMonotonicClock.cs" />
     <Compile Include="Program.cs" />

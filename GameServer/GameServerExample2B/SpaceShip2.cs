@@ -13,7 +13,7 @@ namespace GameServerExample2B
             Random random = new Random();
 
             randomSpawnY = random.Next(-4, 4);
-            SetPosition(0, randomSpawnY);
+            SetPosition(-5, randomSpawnY);
         }
         private float randomSpawnY;
 

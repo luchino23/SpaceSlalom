@@ -5,9 +5,9 @@ namespace GameServerExample2B.Test
 {
     public class TestGameServer
     {
-        private FakeTransport transport;
-        private FakeClock clock;
-        private GameServer server;
+        FakeTransport transport;
+        FakeClock clock;
+        GameServer server;
 
         [SetUp]
         public void SetupTests()  //chiama il blocco di codice prima di ogni test per resettare la classe (torna ad uno stato piu pulito) il costruttore verrebbe chiamato una sola volta all inizio di tutto e non per ogni test
@@ -29,110 +29,188 @@ namespace GameServerExample2B.Test
             Assert.That(server.NumClients, Is.EqualTo(0));
         }
 
-        [Test]
-        public void TestGameObjectsOnStart()
-        {
-            Assert.That(server.NumGameObjects, Is.EqualTo(0));
-        }
+        //[Test]
+        //public void TestGameObjectsOnStart()
+        //{
+        //    Assert.That(server.NumGameObjects, Is.EqualTo(0));
+        //}
 
         [Test]
         public void TestJoin()
         {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet,"tester",0);
+            Packet join = new Packet(server,(byte)0);
+            transport.ClientEnqueue(join,"tester",0);
             server.SingleStep(); //controlliamo se il server sia attivo
             Assert.That(server.NumClients, Is.EqualTo(1));
         }
 
         [Test]
-        public void TestJoinNumOfGameObject()
+        public void TestWrongJoin()
         {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet, "tester", 0);
-            server.SingleStep(); //controlliamo se il server sia attivo
-            Assert.That(server.NumGameObjects, Is.EqualTo(1));
-        }
-
-        [Test]
-        public void TestWelcomeAfterJoin()
-        {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet, "tester", 0);
-            server.SingleStep(); //controlliamo se il server sia attivo
-            FakeData welcome = transport.ClientDequeue();
-            Assert.That(welcome.data[0], Is.EqualTo(1));
-        }
-
-        [Test]
-        public void TestSpawnAvatarAfterJoin()
-        {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet, "tester", 0);
-            server.SingleStep(); //controlliamo se il server sia attivo
-            transport.ClientDequeue();
-            Assert.That(() => transport.ClientDequeue(), Throws.InstanceOf<FakeQueueEmpty>());
+            Packet join = new Packet(server, (byte)0, 1);
+            transport.ClientEnqueue(join, "tester", 0);
+            server.SingleStep();
+            Assert.That(server.NumClients, Is.EqualTo(0));
         }
 
         [Test]
         public void TestJoinSameClient()
         {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet, "tester", 0);
-            transport.ClientEnqueue(packet, "tester", 0);
-            server.SingleStep(); //controlliamo se il server sia attivo
-            Assert.That(server.NumClients,Is.EqualTo(1));
+            Packet Join = new Packet(server,(byte)0);
+            transport.ClientEnqueue(Join, "tester", 0);
+            transport.ClientEnqueue(Join, "tester", 0);
+            server.SingleStep();
+            server.SingleStep();
+
+            Assert.That(server.NumClients, Is.EqualTo(1));
         }
 
         [Test]
-        public void TestJoinSameAddressClient()
+        public void TestTwoJoin()
         {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet, "tester", 0);
+            Packet join = new Packet(server,(byte)0);
+            transport.ClientEnqueue(join, "Client1", 0);
+            transport.ClientEnqueue(join, "Client2", 0);
             server.SingleStep();
-            transport.ClientEnqueue(packet, "tester", 1);
-            server.SingleStep(); //controlliamo se il server sia attivo
+            server.SingleStep();
             Assert.That(server.NumClients, Is.EqualTo(2));
         }
 
         [Test]
-        public void TestJoinSameAddressAvatars()
+        public void TestAddRoom()
         {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet, "tester", 0);
+            Packet join = new Packet(server,(byte)0);
+            transport.ClientEnqueue(join, "Client1", 0);
+            transport.ClientEnqueue(join, "Client2", 0);
+            transport.ClientEnqueue(join, "Client3", 0);
             server.SingleStep();
-            transport.ClientEnqueue(packet, "tester", 1);
-            server.SingleStep(); //controlliamo se il server sia attivo
-            Assert.That(server.NumGameObjects, Is.EqualTo(2));
+            server.SingleStep();
+            server.SingleStep();
+
+            Assert.That(server.Rooms.Count, Is.EqualTo(2));
         }
 
         [Test]
-        public void TestJoinTwoClientsSamePort()
+        public void TestWelcomePacketCommand()
         {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet, "tester", 0);
+            Packet join = new Packet(server,(byte)0);
+            transport.ClientEnqueue(join, "Client1", 0);
             server.SingleStep();
-            transport.ClientEnqueue(packet, "foobar", 1);
-            server.SingleStep(); //controlliamo se il server sia attivo
-            Assert.That(server.NumClients, Is.EqualTo(2));
+            Assert.That(transport.ClientDequeue().data[0], Is.EqualTo((byte)1));
+        }
+
+
+
+        [Test]
+        public void TestWelcomePacketIdRoom()
+        {
+            Packet join = new Packet(server, (byte)0);
+            transport.ClientEnqueue(join, "Client1", 0);
+            server.SingleStep();
+            uint idRoom = BitConverter.ToUInt32(transport.ClientDequeue().data, 5);
+            Assert.That(idRoom, Is.EqualTo(0));
         }
 
         [Test]
-        public void TestJoinTwoClientsWelcome()
+        public void TestWelcomePacketIdPlayer()
         {
-            Packet packet = new Packet(0);
-            transport.ClientEnqueue(packet, "tester", 0);
+            Packet join = new Packet(server,(byte)0);
+            transport.ClientEnqueue(join, "Client1", 0);
+            
             server.SingleStep();
-            transport.ClientEnqueue(packet, "foobar", 1);
-            server.SingleStep(); //controlliamo se il server sia attivo
-
-            Assert.That(transport.ClientQueueCount, Is.EqualTo(5));
-            Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("tester"));
-            Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("tester"));
-            Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("tester"));
-            Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("foobar"));
-            Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("foobar"));
-
+            uint idPlayer = BitConverter.ToUInt32(transport.ClientDequeue().data, 1);
+            Assert.That(idPlayer, Is.EqualTo(0));
         }
+
+        //[Test]
+        //public void TestJoinNumOfGameObject()
+        //{
+        //    Packet packet = new Packet(0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    server.SingleStep(); //controlliamo se il server sia attivo
+        //    Assert.That(server.NumGameObjects, Is.EqualTo(1));
+        //}
+
+        //[Test]
+        //public void TestWelcomeAfterJoin()
+        //{
+        //    Packet packet = new Packet(0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    server.SingleStep(); //controlliamo se il server sia attivo
+        //    FakeData welcome = transport.ClientDequeue();
+        //    Assert.That(welcome.data[0], Is.EqualTo(1));
+        //}
+
+        //[Test]
+        //public void TestSpawnAvatarAfterJoin()
+        //{
+        //    Packet packet = new Packet(0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    server.SingleStep(); //controlliamo se il server sia attivo
+        //    transport.ClientDequeue();
+        //    Assert.That(() => transport.ClientDequeue(), Throws.InstanceOf<FakeQueueEmpty>());
+        //}
+
+        //[Test]
+        //public void TestJoinSameClient()
+        //{
+        //    Packet packet = new Packet(0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    server.SingleStep(); //controlliamo se il server sia attivo
+        //    Assert.That(server.NumClients,Is.EqualTo(1));
+        //}
+
+        //[Test]
+        //public void TestJoinSameAddressClient()
+        //{
+        //    Packet packet = new Packet(0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    server.SingleStep();
+        //    transport.ClientEnqueue(packet, "tester", 1);
+        //    server.SingleStep(); //controlliamo se il server sia attivo
+        //    Assert.That(server.NumClients, Is.EqualTo(2));
+        //}
+
+        //[Test]
+        //public void TestJoinSameAddressAvatars()
+        //{
+        //    Packet packet = new Packet(0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    server.SingleStep();
+        //    transport.ClientEnqueue(packet, "tester", 1);
+        //    server.SingleStep(); //controlliamo se il server sia attivo
+        //    Assert.That(server.NumGameObjects, Is.EqualTo(2));
+        //}
+
+        //[Test]
+        //public void TestJoinTwoClientsSamePort()
+        //{
+        //    Packet packet = new Packet(0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    server.SingleStep();
+        //    transport.ClientEnqueue(packet, "foobar", 1);
+        //    server.SingleStep(); //controlliamo se il server sia attivo
+        //    Assert.That(server.NumClients, Is.EqualTo(2));
+        //}
+
+        //[Test]
+        //public void TestJoinTwoClientsWelcome()
+        //{
+        //    Packet packet = new Packet(0);
+        //    transport.ClientEnqueue(packet, "tester", 0);
+        //    server.SingleStep();
+        //    transport.ClientEnqueue(packet, "foobar", 1);
+        //    server.SingleStep(); //controlliamo se il server sia attivo
+
+        //    Assert.That(transport.ClientQueueCount, Is.EqualTo(5));
+        //    Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("tester"));
+        //    Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("tester"));
+        //    Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("tester"));
+        //    Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("foobar"));
+        //    Assert.That(transport.ClientDequeue().endPoint.Address, Is.EqualTo("foobar"));
+
+        //}
 
         //[Test]
         //public void TestEvilUpdate()
