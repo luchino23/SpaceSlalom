@@ -8,15 +8,19 @@ namespace GameServerExample2B
 {
     public class Asteroids : GameObject
     {
+        Collider2D collider;
+
         public Asteroids(GameServer server) : base(1, server)
         {
-           
+
             //SetVelocity(vel.X, vel.Y);
 
             //pos.X = 100;
-
+            Width = 1.2f;
+            Height = 1.2f;
+            IsActive = true;
             Random random = new Random();
-            
+            collider = new Collider2D(this);
             randomSpawnY = random.Next(-4, 4);
             SetLifeTime();
             SetPosition(10,randomSpawnY);
@@ -51,7 +55,42 @@ namespace GameServerExample2B
                 return randomSpawnY;
             }
         }
-        
+
+        public bool CheckCollisionWith(Collider2D collider)
+        {
+            return (this.collider.CollisionMask & collider.CollisionType) != 0;
+        }
+
+        public GameObject GetGameObject()
+        {
+            return this;
+        }
+
+        public Collider2D GetCollider()
+        {
+            return collider;
+        }
+
+
+        public bool GetIsActive()
+        {
+            return IsActive;
+        }
+
+        public bool GetIsCollisionAffected()
+        {
+            return isCollisionAffected;
+        }
+
+        public void SetIsActive(bool boolean)
+        {
+            IsActive = boolean;
+        }
+
+        public void SetIsCollisionAffected(bool boolean)
+        {
+            isCollisionAffected = boolean;
+        }
 
         public void SetLifeTime()
         {
@@ -81,5 +120,7 @@ namespace GameServerExample2B
             Position.X -=  0.000000012f * server.Now;
             Position.Y = y;
         }
+
+       
     }
 }

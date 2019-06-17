@@ -21,6 +21,7 @@ namespace GameServerExample2B
         //public float X;
         //public float Y;
         //public float Z;
+        public Collider2D collider;
 
         public Vector2 Position;
 
@@ -52,6 +53,9 @@ namespace GameServerExample2B
         }
         private float height;
 
+        public bool IsActive;
+        public bool isCollisionAffected;
+
         protected GameClient owner;
         protected Room room;
         protected GameServer server;
@@ -65,6 +69,10 @@ namespace GameServerExample2B
         {
             get {
                 return room;
+            }
+            set
+            {
+                room = value;
             }
         }
 
@@ -83,7 +91,7 @@ namespace GameServerExample2B
             }
         }
 
-        protected static uint gameObjectCounter;
+        public static uint gameObjectCounter;
         protected uint internalId;
         public uint Id
         {
@@ -104,12 +112,16 @@ namespace GameServerExample2B
             internalId = ++gameObjectCounter;
             this.server = server;
 
+            IsActive = true;
+            isCollisionAffected = true;
+
+            collider = new Collider2D(this);
             Console.WriteLine("Added GameObject {0} of type {1}", Id, ObjectType);
 
             if (client != null)
                 this.owner = client;
 
-            server.RegisterGameObject(this, internalId, this.Id);
+           // server.RegisterGameObject(this, internalId, this.Id);
         }
 
         public void SetPosition(float x, float y)
@@ -132,7 +144,14 @@ namespace GameServerExample2B
 
         public virtual void Tick(Room room)
         {
-            
         }
+
+        public virtual void OnCollide()
+        {
+            Packet destroy = new Packet(server, 16, Id, room.RoomId);
+            server.SendToAllInARoom(destroy, room);
+            Console.WriteLine("ha colliso con cristo: " + Id);
+        }
+
     }
 }

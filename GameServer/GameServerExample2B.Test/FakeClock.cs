@@ -7,28 +7,28 @@ using System.Diagnostics;
 
 namespace GameServerExample2B.Test
 {
-    //public class FakeClock : IMonotonicClock
-    //{
-    //    //private float timeStap;
+    public class FakeClock : IMonotonicClock
+    {
+        private float timeStap;
 
-    //    //public FakeClock(float timeStamp = 0)
-    //    //{
-    //    //    this.timeStap = timeStamp;
-    //    //}
+        public FakeClock(float timeStamp = 0)
+        {
+            this.timeStap = timeStamp;
+        }
 
-    //    //public float GetNow()
-    //    //{
-    //    //    return timeStap;
-    //    //}
+        public float GetNow()
+        {
+            return timeStap;
+        }
 
-    //    //public void IncreaseTimeStamp(float delta)
-    //    //{
-    //    //    if(delta <= 0)
-    //    //    {
-    //    //        throw new Exception("invalid delta value");
-    //    //    }
-    //    //    timeStap += delta;
-    //    //}
+        public void IncreaseTimeStamp(float delta)
+        {
+            if (delta <= 0)
+            {
+                throw new Exception("invalid delta value");
+            }
+            timeStap += delta;
+        }
 
-    //}
+    }
 }

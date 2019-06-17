@@ -3124,9 +3124,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5d0255a02b3e9c4682b2dd2fb1ddfd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clientaddress: 192.168.1.139
+  clientaddress: 192.168.1.108
   clientport: 9997
-  serverAddress: 192.168.1.139
+  serverAddress: 192.168.1.108
   serverPort: 9999
   netPrefabs:
   - Id: 0

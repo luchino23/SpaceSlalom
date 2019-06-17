@@ -78,16 +78,9 @@ namespace GameServerExample2B
             }
         }
 
-        public void RegisterGameObject(GameObject gameObject)
-        {
-            if (gameObjectsTable.ContainsKey(gameObject.Id))
-                throw new Exception("GameObject already registered");
-            gameObjectsTable[gameObject.Id] = gameObject;
-            Console.WriteLine("Room {0}, Spawned GameObject: {1}", RoomId, gameObjectsTable.Count);
+      
 
-        }
-
-        public bool RegisterGameObject(GameObject gameObject,uint id)
+        public bool RegisterGameObject(GameObject gameObject, uint id)
         {
             if (!gameObjectsTable.ContainsKey(id))
             {
@@ -95,7 +88,7 @@ namespace GameServerExample2B
 
                 Console.WriteLine("Added in room : {0} GameObject Type : {1}, Id : {2})", RoomId, gameObject.ObjectType, gameObject.Id);
                 return true;
-                
+
             }
             return false;
         }
@@ -125,8 +118,7 @@ namespace GameServerExample2B
                         //server.SpawnAvatar(this);
                     }
 
-                //if (gameStarted && !spawnTeam && gameObjectsTable.Count >= 8)
-                //    server.SpawnHeroes(this);
+               
             }
         }
        
@@ -163,8 +155,8 @@ namespace GameServerExample2B
                     if (Player1.IsReady && Player2.IsReady && !gameStarted)
                     {
                         server.GameStart(this);
-                        server.SpawnAvatar(this);
-                        server.SpawnAvatar2(this);
+                        server.SpawnAvatar(this,client);
+                        server.SpawnAvatar2(this,client);
                     }
 
             }
