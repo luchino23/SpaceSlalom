@@ -12,6 +12,7 @@ namespace GameServerExample2B
             randomSpawnY = random.Next(-4, 4);
             SetPosition(1, randomSpawnY);
             IsActive = true;
+            isCollisionAffected = true;
             Width = 1f;
             Height = 0.4f;
 

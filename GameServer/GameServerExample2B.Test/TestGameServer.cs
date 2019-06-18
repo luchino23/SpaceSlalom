@@ -29,12 +29,6 @@ namespace GameServerExample2B.Test
             Assert.That(server.NumClients, Is.EqualTo(0));
         }
 
-        //[Test]
-        //public void TestGameObjectsOnStart()
-        //{
-        //    Assert.That(server.NumGameObjects, Is.EqualTo(0));
-        //}
-
         [Test]
         public void TestJoin()
         {
@@ -44,14 +38,6 @@ namespace GameServerExample2B.Test
             Assert.That(server.NumClients, Is.EqualTo(1));
         }
 
-        [Test]
-        public void TestWrongJoin()
-        {
-            Packet join = new Packet(server, (byte)0, 1);
-            transport.ClientEnqueue(join, "tester", 0);
-            server.SingleStep();
-            Assert.That(server.NumClients, Is.EqualTo(0));
-        }
 
         [Test]
         public void TestJoinSameClient()
@@ -115,21 +101,11 @@ namespace GameServerExample2B.Test
         public void TestWelcomePacketIdPlayer()
         {
             Packet join = new Packet(server,(byte)0);
-            transport.ClientEnqueue(join, "Client1", 0);
-            
+            transport.ClientEnqueue(join, "Client1", 0);           
             server.SingleStep();
             uint idPlayer = BitConverter.ToUInt32(transport.ClientDequeue().data, 1);
             Assert.That(idPlayer, Is.EqualTo(0));
         }
-
-        //[Test]
-        //public void TestJoinNumOfGameObject()
-        //{
-        //    Packet packet = new Packet(0);
-        //    transport.ClientEnqueue(packet, "tester", 0);
-        //    server.SingleStep(); //controlliamo se il server sia attivo
-        //    Assert.That(server.NumGameObjects, Is.EqualTo(1));
-        //}
 
         //[Test]
         //public void TestWelcomeAfterJoin()

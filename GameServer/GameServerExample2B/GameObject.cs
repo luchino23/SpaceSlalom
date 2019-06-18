@@ -61,7 +61,8 @@ namespace GameServerExample2B
         protected GameServer server;
 
         public bool IsOwnedBy(GameClient client)
-        {
+        {           
+
             return owner == client;
         }
 
@@ -79,6 +80,7 @@ namespace GameServerExample2B
         public void SetOwner(GameClient client)
         {
             owner = client;
+            owner.GameObject = this;
         }
 
         protected uint internalObjectType;

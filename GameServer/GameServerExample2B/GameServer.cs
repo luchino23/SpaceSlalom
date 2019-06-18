@@ -23,6 +23,8 @@ namespace GameServerExample2B
                     return client;
             return null;
         }
+        public const byte WELCOME_COMMAND = 1;
+
 
         private IGameTransport transport;
         private IMonotonicClock clock;
@@ -85,30 +87,11 @@ namespace GameServerExample2B
             clientsTable[sender] = newClient;
             room.AddGameClient(newClient);
 
-            //SpaceShip avatar =  Spawn<SpaceShip>(room.RoomId);
-            //avatar.SetOwner(newClient);
-
-
-            Packet welcome = new Packet(this, 1, newClient.Id, room.RoomId);
-           // welcome.OneShot = true;
+            Packet welcome = new Packet(this, WELCOME_COMMAND, newClient.Id, room.RoomId);
             newClient.Enqueue(welcome);
-            Console.WriteLine("Welcome");
-
-
+            Console.WriteLine("Welcome"); 
         }
         
-        //private void Ack(byte[] data, EndPoint sender)
-        //{
-        //    if (!clientsTable.ContainsKey(sender))
-        //    {
-        //        return;
-        //    }
-
-        //    GameClient client = clientsTable[sender];
-        //    uint packetId = BitConverter.ToUInt32(data, 1);
-        //    client.Ack(packetId);
-        //}
-
         private void Update(byte[] data, EndPoint sender)
         {
             if (!clientsTable.ContainsKey(sender))
@@ -128,10 +111,8 @@ namespace GameServerExample2B
                 {
                     float x = BitConverter.ToSingle(data, 9);
                     float y = BitConverter.ToSingle(data, 13);
-                    //float z = BitConverter.ToSingle(data, 17);
                     gameObject.SetPosition(x, y);
                     Packet moveOtherPlayer = new Packet(this, 12, netId, roomId, x, y);
-                   // moveOtherPlayer.OneShot = true;
                     if (netId == 1)
                     {
                         room.Player2.Enqueue(moveOtherPlayer);
@@ -140,10 +121,7 @@ namespace GameServerExample2B
                     {
                         room.Player1.Enqueue(moveOtherPlayer);
                     }
-                    
                 }
-               
-
             }
         }
 
@@ -178,6 +156,19 @@ namespace GameServerExample2B
             Room room = GetRoomFromId(roomId);
             if(room != null && room.RoomContainsThisClient(clientId))
                 room.SetPlayersReady(clientId);
+
+            if(clientId == 1)
+            {
+                Packet avatarSpawn = SpawnAvatar(room, client);
+                room.Player1.Enqueue(avatarSpawn);
+            }
+
+            else if(clientId == 2)
+            {
+                SpawnAvatar2(room, client);
+                Packet avatarSpawn = SpawnAvatar(room, client);
+                room.Player2.Enqueue(avatarSpawn);
+            }
         }
 
         public void GameStart(Room room)
@@ -186,7 +177,6 @@ namespace GameServerExample2B
             {
                 Console.WriteLine("Game start in room " + room.RoomId);
                 Packet startGamePacket = new Packet(this, 5);
-                //startGamePacket.OneShot = true;
 
                 Send(startGamePacket, room.Player1.GetEndPoint());
                 Send(startGamePacket, room.Player2.GetEndPoint());
@@ -195,14 +185,12 @@ namespace GameServerExample2B
             }
         }
 
-        
-
         public void SpawnAsteroids(Room room)
         {          
             Asteroids asteroid = Spawn<Asteroids>(room.RoomId);
             room.RegisterGameObject(asteroid,asteroid.Id);      
             Packet asteroidSpawn = new Packet(this, 6, asteroid.ObjectType, asteroid.Id, room.RoomId, asteroid.Position.X, asteroid.Position.Y);
-            //asteroidSpawn.OneShot = true;
+           
             Console.WriteLine("lenght Asteroid : " + asteroidSpawn.GetData().Length);
             SendToAllInARoom(asteroidSpawn,room);
         }
@@ -211,24 +199,28 @@ namespace GameServerExample2B
         {
             foreach (KeyValuePair<uint, GameObject> gO in room.gameObjectsTable)
             {
-                if (gO.Key == 1 || gO.Key == 2)
+                if (gO.Key == 0 || gO.Key == 1)
                     continue;
                 Packet moveAsteroid = new Packet(this, 13, gO.Value.ObjectType, gO.Value.Id, room.RoomId, gO.Value.Position.X, gO.Value.Position.Y);
-                //moveAsteroid.OneShot = true;
                 SendToAllInARoom(moveAsteroid, room);
             }
         }
 
-        public void SpawnAvatar(Room room, GameClient client)
+        public Packet SpawnAvatar(Room room, GameClient client)
         {
-            SpaceShip player = Spawn<SpaceShip>(room.RoomId);
-            player.SetOwner(client);
-            GetRoomFromId(room.RoomId).RegisterGameObject(player, player.Id);
-            Packet avatarSpawn = new Packet(this, 11, player.ObjectType, player.Id, room.RoomId, player.Position.X, player.Position.Y);
-            //avatarSpawn.OneShot = true;
-            Console.WriteLine("lenghtPlayer1 : " + avatarSpawn.GetData().Length);
-            SendToAllInARoom(avatarSpawn, room);
-            Console.WriteLine();
+            if (room.Player1.GameObject == null)
+            {
+                SpaceShip player = Spawn<SpaceShip>(room.RoomId);
+                player.SetOwner(client);
+                GetRoomFromId(room.RoomId).RegisterGameObject(player, player.Id);               
+                Packet avatarSpawn = new Packet(this, 2, player.ObjectType, player.Id, room.RoomId, player.Position.X, player.Position.Y);
+                return avatarSpawn;
+            }
+            else
+            {
+                Packet avatarSpawn = new Packet(this, 2, room.Player1.GameObject.ObjectType, room.Player1.GameObject.Id, room.RoomId, room.Player1.GameObject.Position.X, room.Player1.GameObject.Position.Y);
+                return avatarSpawn;
+            }
         }
 
         public void SpawnAvatar2(Room room, GameClient client)
@@ -236,20 +228,18 @@ namespace GameServerExample2B
             SpaceShip2 player2 = Spawn<SpaceShip2>(room.RoomId);
             player2.SetOwner(client);
             GetRoomFromId(room.RoomId).RegisterGameObject(player2, player2.Id);
-            Packet avatarSpawn = new Packet(this, 2, player2.ObjectType, player2.Id, room.RoomId, player2.Position.X, player2.Position.Y);
-            // avatarSpawn.OneShot = true;
+            Packet avatarSpawn = new Packet(this, 11, player2.ObjectType, player2.Id, room.RoomId, player2.Position.X, player2.Position.Y);
             SendToAllInARoom(avatarSpawn, room);
         }
 
         public void OnAsteroidCollision(Room room)
         {            
-            for (uint i = 3; i < room.gameObjectsTable.Count - 1; i++)
+            for (uint i = 1; i < room.gameObjectsTable.Count - 1; i++)
             {
-                if (room.gameObjectsTable[i].IsActive && room.gameObjectsTable[i].isCollisionAffected)
                 {
                     for (uint j = i + 1; j < room.gameObjectsTable.Count; j++)
                     {
-                        if (room.gameObjectsTable[i].IsActive && room.gameObjectsTable[i].isCollisionAffected)
+                        if(room.gameObjectsTable[i].IsActive && room.gameObjectsTable[i].isCollisionAffected)
                         {
                             if (room.gameObjectsTable[i].collider.Collides(room.gameObjectsTable[j].collider))
                             {
@@ -270,13 +260,7 @@ namespace GameServerExample2B
                     }
                 }
             }
-
-        }
-
-       
-
-
-        
+        }           
 
         public void Run()
         {    
@@ -330,9 +314,6 @@ namespace GameServerExample2B
                 room.UpdateRoom();
                 OnAsteroidCollision(room);
             }
-
-            
-
         }
         
         public bool Send(Packet packet, EndPoint endPoint)
@@ -380,7 +361,6 @@ namespace GameServerExample2B
         
         public void SendToAllInARoom(Packet packet, Room room) //sendToAllClients
         {
-            //packet.OneShot = true;
             room.Player1.Enqueue(packet);
             room.Player2.Enqueue(packet);
         }

@@ -11,9 +11,12 @@ namespace GameServerExample2B
         public SpaceShip2(GameServer server) : base(0,server)
         {
             Random random = new Random();
-
+            IsActive = true;
+            isCollisionAffected = true;
             randomSpawnY = random.Next(-4, 4);
             SetPosition(-5, randomSpawnY);
+            Width = 1f;
+            Height = 0.4f;
         }
         private float randomSpawnY;
 

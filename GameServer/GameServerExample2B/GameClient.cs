@@ -19,6 +19,20 @@ namespace GameServerExample2B
             return endPoint;
         }
 
+        private GameObject gameObject;
+
+        public GameObject GameObject
+        {
+            get
+            {
+                return gameObject;
+            }
+            set
+            {
+                gameObject = value;
+            }
+        }
+
         private Room room;
 
         public Room Room

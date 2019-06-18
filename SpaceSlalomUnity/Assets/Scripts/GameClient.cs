@@ -65,6 +65,9 @@ public class GameClient : MonoBehaviour
         }
     }
 
+    private bool readyPlayer1;
+    private bool readyPlayer2;
+
     float serverStatusTimer;
     float serverOfflineTImer;
     float defaultServerStatusTimer = 2.5f;  
@@ -121,7 +124,8 @@ public class GameClient : MonoBehaviour
     void Start()
     {
         gameStarted = false;
-       
+        readyPlayer1 = false;
+        readyPlayer2 = false;
         backGround.SetActive(false);
         cam.gameObject.SetActive(false);
         startingMenu.SetActive(true);
@@ -155,7 +159,6 @@ public class GameClient : MonoBehaviour
         uint roomId = BitConverter.ToUInt32(data, 5);
 
         Debug.Log("collide ");
-
     }
 
     private void MoveAsteroids(byte[] data, EndPoint sender)
@@ -165,10 +168,8 @@ public class GameClient : MonoBehaviour
         uint roomId = BitConverter.ToUInt32(data, 9);
         float x = BitConverter.ToSingle(data, 13);
         float y = BitConverter.ToSingle(data, 17);
-
-
-        netGameObjects[netId].transform.position = new Vector3(x, y);
-        
+        //Debug.Log("errore " + "prefabType : " + prefabType + "net id " + netId + "roomid :" + roomId + "x :" + x + "y :" + y);
+        netGameObjects[netId].transform.position = new Vector3(x, y);      
     }
 
    
@@ -176,15 +177,14 @@ public class GameClient : MonoBehaviour
 
     private void SpawnAsteroids(byte[] data, EndPoint sender)
     {     
-        //System.Random random = new System.Random();
         uint prefabType = BitConverter.ToUInt32(data, 1);
         uint netId = BitConverter.ToUInt32(data, 5);
         uint roomId = BitConverter.ToUInt32(data, 9);
         float x = BitConverter.ToSingle(data, 13);
         float y = BitConverter.ToSingle(data, 17);
-        Debug.Log("x: " + x);
-        Debug.Log("y: " + y);
-        Debug.Log("spawnato");
+        //Debug.Log("x: " + x);
+        //Debug.Log("y: " + y);
+        //Debug.Log("spawnato");
         if (!netGameObjects.ContainsKey(netId) && netPrefabsCache.ContainsKey(prefabType))
         {
             GameObject prefab = netPrefabsCache[prefabType];
@@ -206,8 +206,7 @@ public class GameClient : MonoBehaviour
         uint myNetId = BitConverter.ToUInt32(data, 5);
         uint roomId = BitConverter.ToUInt32(data, 9);
         float x = BitConverter.ToSingle(data, 13);
-        float y = BitConverter.ToSingle(data, 17);
-        
+        float y = BitConverter.ToSingle(data, 17);      
 
         if (netPrefabsCache.ContainsKey(prefabType) && myGameObject == null)
         {          
@@ -216,15 +215,11 @@ public class GameClient : MonoBehaviour
             myGameObject.name = string.Format("Me {0}", myNetId);
             myGameObject.transform.position = new Vector3(x, y);
             netGameObjects.Add(myNetId, myGameObject);
-           
-        }
-        
-
+}
     }
 
     private void SpawnPlayer2(byte[] data, EndPoint sender)
     {
-
         uint prefabType = BitConverter.ToUInt32(data, 1);
         uint myNetId = BitConverter.ToUInt32(data, 5);
         uint roomId = BitConverter.ToUInt32(data, 9);
@@ -238,27 +233,22 @@ public class GameClient : MonoBehaviour
             myGameObject2.name = string.Format("Me {0}", myNetId);
             myGameObject2.transform.position = new Vector3(x, y);
             netGameObjects.Add(myNetId, myGameObject2);
-          
-
         }
-        
-
     }
 
     private void Welcome(byte[] data, EndPoint sender)
     {
         myNetId = BitConverter.ToUInt32(data, 1);
         roomId = BitConverter.ToUInt32(data, 5);        
-
-        Debug.Log("Welcome Arrived");
-
         Packet ready = new Packet(8, myNetId, roomId);
-        
         Send(ready.GetData());
 
+        if (myNetId == 1)
+            readyPlayer1 = true;
+        else if (myNetId == 2)
+            readyPlayer2 = true;
+
     }
-
-
 
     private void StatusServer(byte[]data, EndPoint sender)
     {
@@ -267,7 +257,6 @@ public class GameClient : MonoBehaviour
         serverOfflineTImer = defaultOfflineTimer;
     }
    
-
     public void JoinButton()
     {
         Packet join = new Packet(0);
@@ -282,8 +271,6 @@ public class GameClient : MonoBehaviour
         cam.gameObject.SetActive(false);
     }
 
-
-
     public void DestroyObject(byte[] data, EndPoint sender)
     {
         uint myNetId = BitConverter.ToUInt32(data, 1);
@@ -291,11 +278,7 @@ public class GameClient : MonoBehaviour
         DestroyImmediate(netGameObjects[myNetId]);
         netGameObjects.Remove(myNetId);
         Debug.Log("destroy");
-
     }
-
-
-
 
     private void MoveOtherPlayer(byte[] data, EndPoint sender)
     {
@@ -304,10 +287,16 @@ public class GameClient : MonoBehaviour
         float x = BitConverter.ToSingle(data, 9);
         float y = BitConverter.ToSingle(data, 13);
 
-        myGameObject2.transform.position = new Vector3(x, y);
-        Debug.Log("move other player");
-    }
 
+        if (myNetId == 1)
+            myGameObject.transform.position = new Vector3(x, y);
+
+        else if (myNetId == 2)
+            myGameObject2.transform.position = new Vector3(x, y);
+
+       // myGameObject2.transform.position = new Vector3(x, y);
+        //Debug.Log("move other player :  " + myNetId);
+    }
     // Update is called once per frame
     void Update()
     {        
@@ -326,38 +315,64 @@ public class GameClient : MonoBehaviour
 
         if (serverOfflineTImer < 0)
             serverIsOnline = false;
+       
 
-        if (myGameObject != null)
+        if (myGameObject != null && myGameObject2 != null)
         {
-            if (Input.GetKey(KeyCode.D))
-            {
-                myGameObject.transform.position += myGameObject.transform.right * 3 * Time.deltaTime;
+            Packet updatePosition = new Packet();           
+
+            if (readyPlayer1)
+            { 
+                if (Input.GetKey(KeyCode.D))
+                {
+                    myGameObject.transform.position += myGameObject.transform.right * 2 * Time.deltaTime;
+                }
+                if (Input.GetKey(KeyCode.A))
+                {
+                    myGameObject.transform.position += -myGameObject.transform.right * 2 * Time.deltaTime;
+                }
+                if (Input.GetKey(KeyCode.W))
+                {
+                    myGameObject.transform.position += myGameObject.transform.up * 2 * Time.deltaTime;
+                }
+                if (Input.GetKey(KeyCode.S))
+                {
+                    myGameObject.transform.position += -myGameObject.transform.up * 2 * Time.deltaTime;
+                }
+
+               updatePosition = new Packet(3, myNetId, roomId, myGameObject.transform.position.x, myGameObject.transform.position.y);
             }
-            if (Input.GetKey(KeyCode.A))
+
+            if (readyPlayer2)
             {
-                myGameObject.transform.position += -myGameObject.transform.right * 3 * Time.deltaTime;
+                if (Input.GetKey(KeyCode.D))
+                {
+                    myGameObject2.transform.position += myGameObject.transform.right * 2 * Time.deltaTime;
+                }
+                if (Input.GetKey(KeyCode.A))
+                {
+                    myGameObject2.transform.position += -myGameObject.transform.right * 2 * Time.deltaTime;
+                }
+                if (Input.GetKey(KeyCode.W))
+                {
+                    myGameObject2.transform.position += myGameObject.transform.up * 2 * Time.deltaTime;
+                }
+                if (Input.GetKey(KeyCode.S))
+                {
+                    myGameObject2.transform.position += -myGameObject.transform.up * 2 * Time.deltaTime;
+                }
+                updatePosition = new Packet(3, myNetId, roomId, myGameObject2.transform.position.x, myGameObject2.transform.position.y);
             }
-            if (Input.GetKey(KeyCode.W))
-            {
-                myGameObject.transform.position += myGameObject.transform.up * 3 * Time.deltaTime;
-            }
-            if (Input.GetKey(KeyCode.S))
-            {
-                myGameObject.transform.position += -myGameObject.transform.up * 3 * Time.deltaTime;
-            }
+
+            if(updatePosition.GetData().Length != 0)
+                Send(updatePosition.GetData());
 
             //Vector3 myPosition = myGameObject.transform.position;
-            Packet updatePosition = new Packet(3, myNetId, roomId, myGameObject.transform.position.x, myGameObject.transform.position.y);
-
-
-            Send(updatePosition.GetData());
-
+            //Packet updatePosition = new Packet(3, myNetId, roomId, myGameObject.transform.position.x, myGameObject.transform.position.y);
 
             Debug.Log("player 1 x: " + myGameObject.transform.position);
 
             Debug.Log("player 2 x: " + myGameObject2.transform.position);
-
-
         }
         const int maxPackets = 100;
         byte[] data = new byte[256];
@@ -381,10 +396,7 @@ public class GameClient : MonoBehaviour
                     commandsTable[command](data, clientendPoint);
 
             }
-            if(data[0] == 13)
-            {
 
-            }
             //    if (command == 2)
             //    {
             //        uint prefabType = BitConverter.ToUInt32(data, 1);

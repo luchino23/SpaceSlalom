@@ -36,7 +36,8 @@ namespace GameServerExample2B
                     return client;
             return null;
         }
-        
+
+
         public GameClient Player1
         {
             get { return clientsTable[0]; }
@@ -97,13 +98,6 @@ namespace GameServerExample2B
         {
             if (gameStarted)
             {
-                foreach (GameObject gameObj in gameObjectsTable.Values)
-                {
-                    gameObj.Tick(this);
-                    server.MoveAsteroids(this);
-
-                }
-
                 if (server.Now >= asteroidTimeSpawn)
                 {
                     server.SpawnAsteroids(this);
@@ -111,18 +105,26 @@ namespace GameServerExample2B
                     SetSpawnTimer();
                 }
 
-                if (Player1 != null && Player2 != null)
-                    if (Player1.IsReady && Player2.IsReady && !gameStarted)
-                    {
-                        server.GameStart(this);
-                        //server.SpawnAvatar(this);
-                    }
+                foreach (GameObject gameObj in gameObjectsTable.Values)
+                {
+                    gameObj.Tick(this);
 
-               
+                }
+                server.MoveAsteroids(this);
+
+
+
+                //if (Player1 != null && Player2 != null)
+                //    if (Player1.IsReady && Player2.IsReady && !gameStarted)
+                //    {
+                //        server.GameStart(this);
+                //        //server.SpawnAvatar(this);
+                //    }
+
+
             }
         }
        
-
         public GameObject GetGameObjectFromId(uint id)
         {
             if (gameObjectsTable.ContainsKey(id))
@@ -145,8 +147,7 @@ namespace GameServerExample2B
             if(RoomContainsThisClient(clientId))
             {
                 GameClient client = GetClient(clientId);
-
-                
+     
                 client.SetReady(true);
 
                 Console.WriteLine(client.IsReady + "client");
@@ -155,10 +156,9 @@ namespace GameServerExample2B
                     if (Player1.IsReady && Player2.IsReady && !gameStarted)
                     {
                         server.GameStart(this);
-                        server.SpawnAvatar(this,client);
-                        server.SpawnAvatar2(this,client);
+                        //server.SpawnAvatar(this, client);
+                        //server.SpawnAvatar2(this, client);
                     }
-
             }
         }
 
@@ -195,15 +195,12 @@ namespace GameServerExample2B
         private void SetSpawnTimer()
         {
             Random random = new Random();
-            float offset = random.Next(5, 10);
-           // offset *= 1;
+            float offset = random.Next(3, 8);
             asteroidTimeSpawn = server.Now + offset;
-
         }
 
         public void JoinRoom(GameClient client)
         {
-         
             if(!this.ContainsClient(client))
             {
                 for (int i = 0; i < clientsTable.Count; i++)
@@ -212,11 +209,9 @@ namespace GameServerExample2B
                     {
                         clientsTable[i] = client;
                         return;
-                    }
-                    
+                    }           
                 }
             }     
-          
         }
     }
 }

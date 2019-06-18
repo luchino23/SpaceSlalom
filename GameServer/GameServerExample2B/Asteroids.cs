@@ -12,13 +12,10 @@ namespace GameServerExample2B
 
         public Asteroids(GameServer server) : base(1, server)
         {
-
-            //SetVelocity(vel.X, vel.Y);
-
-            //pos.X = 100;
-            Width = 1.2f;
-            Height = 1.2f;
+            Width = 2f;
+            Height = 2f;
             IsActive = true;
+            isCollisionAffected = true;
             Random random = new Random();
             collider = new Collider2D(this);
             randomSpawnY = random.Next(-4, 4);
