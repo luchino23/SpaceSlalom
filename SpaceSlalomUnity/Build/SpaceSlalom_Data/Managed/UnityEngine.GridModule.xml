@@ -183,19 +183,10 @@
       <summary>
         <para>Returns the local bounds for a cell at the location.</para>
       </summary>
-      <param name="cellPosition">Location of the cell.</param>
+      <param name="localPosition">Location of the cell.</param>
+      <param name="cellPosition"></param>
       <returns>
-        <para>Local bounds of cell at the location.</para>
-      </returns>
-    </member>
-    <member name="M:UnityEngine.GridLayout.GetBoundsLocal(UnityEngine.Vector3,UnityEngine.Vector3)">
-      <summary>
-        <para>Returns the local bounds for the groups of cells at the location.</para>
-      </summary>
-      <param name="origin">Origin of the group of cells.</param>
-      <param name="size">Size of the group of cells.</param>
-      <returns>
-        <para>Local bounds of the group of cells at the location.</para>
+        <para>Local bounds of cell at the position.</para>
       </returns>
     </member>
     <member name="M:UnityEngine.GridLayout.GetLayoutCellCenter">

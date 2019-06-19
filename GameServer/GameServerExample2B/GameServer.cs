@@ -234,32 +234,38 @@ namespace GameServerExample2B
 
         public void OnAsteroidCollision(Room room)
         {            
-            for (uint i = 1; i < room.gameObjectsTable.Count - 1; i++)
-            {
-                {
-                    for (uint j = i + 1; j < room.gameObjectsTable.Count; j++)
-                    {
-                        if(room.gameObjectsTable[i].IsActive && room.gameObjectsTable[i].isCollisionAffected)
-                        {
-                            if (room.gameObjectsTable[i].collider.Collides(room.gameObjectsTable[j].collider))
-                            {
-                                room.gameObjectsTable[i].OnCollide();
-                                room.gameObjectsTable[j].OnCollide();
-                                var myKey1 = room.gameObjectsTable.FirstOrDefault(x => x.Value == room.gameObjectsTable[i]).Key;
-                                var myKey2 = room.gameObjectsTable.FirstOrDefault(x => x.Value == room.gameObjectsTable[j]).Key;
-                                gameObjectToDelete.Add(myKey1,room.gameObjectsTable[i]);
-                                gameObjectToDelete.Add(myKey2,room.gameObjectsTable[j]);
-                            }
 
-                            foreach (KeyValuePair<uint,GameObject> gameObject in gameObjectToDelete)
+            if(room.Player1.IsReady && room.Player1.GameObject.IsActive)
+            {
+                for (uint i = 1; i < room.gameObjectsTable.Count - 1; i++)
+                {
+                    {
+                        for (uint j = i + 1; j < room.gameObjectsTable.Count; j++)
+                        {
+                            if(room.gameObjectsTable[i].IsActive && room.gameObjectsTable[i].isCollisionAffected)
                             {
-                                room.gameObjectsTable.Remove(gameObject.Key);
+                                if (room.gameObjectsTable[i].collider.Collides(room.gameObjectsTable[j].collider))
+                                {
+                                    room.gameObjectsTable[i].OnCollide();
+                                    room.gameObjectsTable[j].OnCollide();
+                                    var myKey1 = room.gameObjectsTable.FirstOrDefault(x => x.Value == room.gameObjectsTable[i]).Key;
+                                    var myKey2 = room.gameObjectsTable.FirstOrDefault(x => x.Value == room.gameObjectsTable[j]).Key;
+                                    gameObjectToDelete.Add(myKey1,room.gameObjectsTable[i]);
+                                    gameObjectToDelete.Add(myKey2,room.gameObjectsTable[j]);
+                                }
+
+                                foreach (KeyValuePair<uint,GameObject> gameObject in gameObjectToDelete)
+                                {
+                                  room.gameObjectsTable.Remove(gameObject.Key);
+                                }
+                                gameObjectToDelete.Clear();
                             }
-                            gameObjectToDelete.Clear();
                         }
                     }
                 }
             }
+
+            
         }           
 
         public void Run()

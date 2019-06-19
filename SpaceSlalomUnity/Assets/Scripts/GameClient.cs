@@ -45,6 +45,7 @@ public class GameClient : MonoBehaviour
     public GameObject startingMenu;
     public GameObject sceneElements;
     public GameObject loadingObj;
+    public GameObject gameOverPanel;
 
     private bool gameStarted;
     public bool GameStarted
@@ -131,6 +132,7 @@ public class GameClient : MonoBehaviour
         startingMenu.SetActive(true);
         sceneElements.SetActive(true);
         loadingObj.SetActive(false);
+        gameOverPanel.SetActive(false);
 
         commandsTable = new Dictionary<byte, GameCommand>();
         netGameObjects = new Dictionary<uint, GameObject>();
@@ -278,6 +280,13 @@ public class GameClient : MonoBehaviour
         DestroyImmediate(netGameObjects[myNetId]);
         netGameObjects.Remove(myNetId);
         Debug.Log("destroy");
+
+        backGround.SetActive(false);
+        cam.gameObject.SetActive(false);
+        startingMenu.SetActive(false);
+        sceneElements.SetActive(true);
+        loadingObj.SetActive(false);
+        gameOverPanel.SetActive(true);
     }
 
     private void MoveOtherPlayer(byte[] data, EndPoint sender)
@@ -294,8 +303,7 @@ public class GameClient : MonoBehaviour
         else if (myNetId == 2)
             myGameObject2.transform.position = new Vector3(x, y);
 
-       // myGameObject2.transform.position = new Vector3(x, y);
-        //Debug.Log("move other player :  " + myNetId);
+       
     }
     // Update is called once per frame
     void Update()
@@ -367,9 +375,6 @@ public class GameClient : MonoBehaviour
             if(updatePosition.GetData().Length != 0)
                 Send(updatePosition.GetData());
 
-            //Vector3 myPosition = myGameObject.transform.position;
-            //Packet updatePosition = new Packet(3, myNetId, roomId, myGameObject.transform.position.x, myGameObject.transform.position.y);
-
             Debug.Log("player 1 x: " + myGameObject.transform.position);
 
             Debug.Log("player 2 x: " + myGameObject2.transform.position);
@@ -395,87 +400,7 @@ public class GameClient : MonoBehaviour
                 if (commandsTable.ContainsKey(command))
                     commandsTable[command](data, clientendPoint);
 
-            }
-
-            //    if (command == 2)
-            //    {
-            //        uint prefabType = BitConverter.ToUInt32(data, 1);
-            //        uint netId = BitConverter.ToUInt32(data, 5);
-            //        float x = BitConverter.ToSingle(data, 9);
-            //        float y = BitConverter.ToSingle(data, 13);
-            //        float z = BitConverter.ToSingle(data, 17);
-
-            //        if (!netGameObjects.ContainsKey(netId) && netPrefabsCache.ContainsKey(prefabType))
-            //        {
-            //            GameObject prefab = netPrefabsCache[prefabType];
-            //            GameObject newGameObject = Resources.Load("Player") as GameObject;
-            //            Vector3 position;
-            //            position.x = x;
-            //            position.y = y;
-            //            position.z = z;
-            //            newGameObject.name = string.Format("NetObject {0}", netId);
-            //            newGameObject.transform.position = position;
-            //            netGameObjects[netId] = newGameObject;
-            //        }
-            //    }
-            //    else if (command == 1)
-            //    {
-            //        uint prefabType = BitConverter.ToUInt32(data, 1);
-            //        myNetId = BitConverter.ToUInt32(data, 5);
-            //        float x = BitConverter.ToSingle(data, 9);
-            //        float y = BitConverter.ToSingle(data, 13);
-            //        float z = BitConverter.ToSingle(data, 17);
-
-            //        if (netPrefabsCache.ContainsKey(prefabType) && myGameObject == null)
-            //        {
-            //            GameObject prefab = netPrefabsCache[prefabType];
-            //            myGameObject = Resources.Load("Player") as GameObject;
-            //            Vector3 position;
-            //            position.x = x;
-            //            position.y = y;
-            //            position.z = z;
-            //            myGameObject.name = string.Format("Me {0}", myNetId);
-            //            myGameObject.transform.position = position;
-            //            netGameObjects[myNetId] = myGameObject;
-            //        }
-            //    }
-            //    else if (command == 3)
-            //    {
-            //        uint netId = BitConverter.ToUInt32(data, 1);
-            //        float x = BitConverter.ToSingle(data, 5);
-            //        float y = BitConverter.ToSingle(data, 9);
-            //        float z = BitConverter.ToSingle(data, 13);
-
-            //        if (netId != myNetId && netGameObjects.ContainsKey(netId))
-            //        {
-            //            GameObject updatedGameObject = netGameObjects[netId];
-            //            Vector3 position;
-            //            position.x = x;
-            //            position.y = y;
-            //            position.z = z;
-            //            updatedGameObject.transform.position = position;
-            //        }
-            //    } uint prefabType = BitConverter.ToUInt32(data, 1);
-            //uint netId = BitConverter.ToUInt32(data, 5);
-            //float x = BitConverter.ToSingle(data, 9);
-            //float y = BitConverter.ToSingle(data, 13);
-            //float z = BitConverter.ToSingle(data, 17);
-
-            //if (!netGameObjects.ContainsKey(netId) && netPrefabsCache.ContainsKey(prefabType))
-            //{
-            //    GameObject prefab = netPrefabsCache[prefabType];
-            //    GameObject newGameObject = Resources.Load("Player") as GameObject;
-            //    Vector3 position;
-            //    position.x = x;
-            //    position.y = y;
-            //    position.z = z;
-            //    newGameObject.name = string.Format("NetObject {0}", netId);
-            //    newGameObject.transform.position = position;
-            //    netGameObjects[netId] = newGameObject;
-
-            //    Debug.Log("spaw");
-            //}
-
+            }            
         }
     }
 }

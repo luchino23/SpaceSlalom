@@ -153,6 +153,9 @@ namespace GameServerExample2B
             Packet destroy = new Packet(server, 16, Id, room.RoomId);
             server.SendToAllInARoom(destroy, room);
             Console.WriteLine("ha colliso con cristo: " + Id);
+            room.Player1.GameObject.IsActive = false;
+            room.Player2.GameObject.IsActive = false;
+
         }
 
     }
